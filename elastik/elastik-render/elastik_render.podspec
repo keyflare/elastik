@@ -6,14 +6,14 @@ Pod::Spec.new do |spec|
     spec.authors                  = ''
     spec.license                  = ''
     spec.summary                  = 'Some description for the Shared Module'
-    spec.vendored_frameworks      = 'build/cocoapods/framework/elastik-render.framework'
+    spec.vendored_frameworks      = 'build/cocoapods/framework/elastik_render.framework'
     spec.libraries                = 'c++'
     spec.ios.deployment_target = '14.1'
                 
                 
     spec.pod_target_xcconfig = {
         'KOTLIN_PROJECT_PATH' => ':elastik:elastik-render',
-        'PRODUCT_MODULE_NAME' => 'elastik-render',
+        'PRODUCT_MODULE_NAME' => 'elastik_render',
     }
                 
     spec.script_phases = [
