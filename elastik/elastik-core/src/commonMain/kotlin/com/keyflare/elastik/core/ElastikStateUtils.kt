@@ -1,5 +1,6 @@
 package com.keyflare.elastik.core
 
+// TODO Make it more idiomatic (find/findOrNull)
 inline fun Backstack.find(predicate: (BackstackEntry) -> Boolean): BackstackEntry? {
     var step: List<BackstackEntry> = listOf(this)
     while (true) {
@@ -20,8 +21,8 @@ inline fun Backstack.transform(
 ): Backstack {
     return Backstack(
         id = this.id,
-        label = this.label,
         args = this.args,
+        destinationId = this.destinationId,
         entries = transformation(entries)
     )
 }
@@ -39,8 +40,8 @@ fun Backstack.transform(
     } else {
         Backstack(
             id = this.id,
-            label = this.label,
             args = this.args,
+            destinationId = this.destinationId,
             entries = entries.map { entry ->
                 when (entry) {
                     is SingleEntry -> entry

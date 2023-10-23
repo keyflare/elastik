@@ -32,12 +32,17 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                //put your multiplatform dependencies here
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+                implementation("dev.andrewbailey.difference:difference:1.0.0")
+
+                implementation(project(":elastik:elastik-core"))
+                implementation(project(":elastik:elastik-render"))
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
             }
         }
     }

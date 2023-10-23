@@ -2,42 +2,24 @@ package com.keyflare.elastik.core
 
 sealed interface BackstackEntry {
     val id: Int
-    val label: String
-    val args: Args?
+    val args: Arguments
+    val destinationId: String
 }
 
-class SingleEntry(
+data class SingleEntry(
     override val id: Int,
-    override val label: String,
-    override val args: Args?,
-) : BackstackEntry {
+    override val args: Arguments,
+    override val destinationId: String,
+) : BackstackEntry
 
-    override fun equals(other: Any?): Boolean =
-        other is SingleEntry && other.id == id && other.args == args
 
-    override fun hashCode(): Int =
-        id.hashCode() * (args?.hashCode() ?: 1)
-
-    override fun toString(): String =
-        "SingleEntry(id=$id, label=\"$label\", args=$args)"
-}
-
-class Backstack(
+data class Backstack(
     override val id: Int,
-    override val label: String,
-    override val args: Args?,
+    override val args: Arguments,
+    override val destinationId: String,
     val entries: List<BackstackEntry>,
-) : BackstackEntry {
+) : BackstackEntry
 
-    override fun equals(other: Any?): Boolean =
-        other is Backstack && other.id == id && other.args == args && other.entries == entries
+interface Arguments
 
-    override fun hashCode(): Int {
-        return id.hashCode() * (args?.hashCode() ?: 1)
-    }
-
-    override fun toString(): String =
-        "Backstack(id=$id, label=\"$label\", args=$args, entries=$entries)"
-}
-
-interface Args
+data object EmptyArguments : Arguments

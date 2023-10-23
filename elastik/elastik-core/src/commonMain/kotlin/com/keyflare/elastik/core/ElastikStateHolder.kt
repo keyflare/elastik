@@ -3,6 +3,7 @@ package com.keyflare.elastik.core
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlin.jvm.JvmInline
 
 @JvmInline
@@ -15,12 +16,17 @@ class BackstackTransformation(
     val transformation: (List<BackstackEntry>) -> List<BackstackEntry>,
 )
 
+// TODO MVP solution!
+//  - maybe mark constructor as internal
 class ElastikStateHolder(initial: Backstack = initialState) {
     private val _state = MutableStateFlow(initial)
     val state: StateFlow<Backstack> = _state.asStateFlow()
 
-    // MVP solution!
-    // TODO needs to be optimized
+    // TODO MVP solution!
+    //  Seems that it's not needed to be a stateFlow, just need to be a concurrent-friendly
+    private val blockingSubscribers = MutableStateFlow<List<(Backstack) -> Unit>>(emptyList())
+
+    // TODO MVP solution! needs to be optimized
     //  - maybe use fold
     fun pushTransaction(transaction: BackstackTransaction) {
         val updated = transaction
@@ -33,16 +39,23 @@ class ElastikStateHolder(initial: Backstack = initialState) {
                 updated
             }
         _state.value = updated
+
+        blockingSubscribers.value.forEach { it(updated) }
+    }
+
+    fun subscribeBlocking(onEach: (Backstack) -> Unit) {
+        blockingSubscribers.update { it + onEach }
     }
 
     companion object {
         private const val ROOT_ID = -1
-        private const val ROOT_LABEL = "root"
+        private const val ROOT_DESTINATION_ID = "root"
 
+        @PublishedApi
         internal val initialState = Backstack(
             id = ROOT_ID,
-            label = ROOT_LABEL,
-            args = null,
+            args = EmptyArguments,
+            destinationId = ROOT_DESTINATION_ID,
             entries = emptyList(),
         )
     }

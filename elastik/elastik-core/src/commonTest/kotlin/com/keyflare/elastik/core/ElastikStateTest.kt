@@ -2,39 +2,40 @@ package com.keyflare.elastik.core
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ElastikStateTest {
 
     private val testBackstackTree = with(TestBackstackTreeHelper) {
         backstack(
             id = 0,
-            label = "root",
+            destinationId = "root",
             entries = listOf(
                 backstack(
                     id = 1,
-                    label = "level 1 (0)",
+                    destinationId = "level 1 (0)",
                     entries = listOf(
                         backstack(
                             id = 2,
-                            label = "level 2 (0)",
+                            destinationId = "level 2 (0)",
                             entries = listOf(
-                                single(id = 3, label = "level 3 (0)"),
-                                single(id = 4, label = "level 3 (1)"),
+                                single(id = 3, destinationId = "level 3 (0)"),
+                                single(id = 4, destinationId = "level 3 (1)"),
                             )
                         ),
-                        single(id = 5, label = "level 2 (1)"),
+                        single(id = 5, destinationId = "level 2 (1)"),
                     )
                 ),
                 backstack(
                     id = 6,
-                    label = "level 1 (1)",
+                    destinationId = "level 1 (1)",
                     entries = listOf(
-                        single(id = 7, label = "level 2 (2)"),
-                        single(id = 8, label = "level 2 (3)"),
+                        single(id = 7, destinationId = "level 2 (2)"),
+                        single(id = 8, destinationId = "level 2 (3)"),
                     )
                 ),
-                single(id = 9, label = "level 1 (2)"),
-                single(id = 10, label = "level 1 (3)"),
+                single(id = 9, destinationId = "level 1 (2)"),
+                single(id = 10, destinationId = "level 1 (3)"),
             )
         )
     }
@@ -42,27 +43,27 @@ class ElastikStateTest {
     private val testBackstackTreeTransformed = with(TestBackstackTreeHelper) {
         backstack(
             id = 0,
-            label = "root",
+            destinationId = "root",
             entries = listOf(
                 backstack(
                     id = 1,
-                    label = "level 1 (0)",
+                    destinationId = "level 1 (0)",
                     entries = listOf(
                         backstack(
                             id = 2,
-                            label = "level 2 (0)",
+                            destinationId = "level 2 (0)",
                             entries = listOf(
-                                single(id = 3, label = "level 3 (0)"),
-                                single(id = 13, label = "level 3 (1) (replaced)"),
+                                single(id = 3, destinationId = "level 3 (0)"),
+                                single(id = 13, destinationId = "level 3 (1) (replaced)"),
                             )
                         ),
-                        single(id = 5, label = "level 2 (1)"),
-                        single(id = 12, label = "level 2 (4) (added)"),
+                        single(id = 5, destinationId = "level 2 (1)"),
+                        single(id = 12, destinationId = "level 2 (4) (added)"),
                     )
                 ),
-                single(id = 9, label = "level 1 (2)"),
-                single(id = 10, label = "level 1 (3)"),
-                single(id = 11, label = "level 1 (4) (added)")
+                single(id = 9, destinationId = "level 1 (2)"),
+                single(id = 10, destinationId = "level 1 (3)"),
+                single(id = 11, destinationId = "level 1 (4) (added)")
             )
         )
     }
@@ -71,57 +72,57 @@ class ElastikStateTest {
     fun `Find BackstackEntry method test`() {
         assertEquals(
             expected = "root",
-            actual = testBackstackTree.find { it.id == 0 }?.label,
+            actual = testBackstackTree.find { it.id == 0 }?.destinationId,
             message = "Error when trying to find \"root\" entry",
         )
         assertEquals(
             expected = "level 1 (0)",
-            actual = testBackstackTree.find { it.id == 1 }?.label,
+            actual = testBackstackTree.find { it.id == 1 }?.destinationId,
             message = "Error when trying to find \"level 1 (0)\" entry",
         )
         assertEquals(
             expected = "level 2 (0)",
-            actual = testBackstackTree.find { it.id == 2 }?.label,
+            actual = testBackstackTree.find { it.id == 2 }?.destinationId,
             message = "Error when trying to find \"level 2 (0)\" entry",
         )
         assertEquals(
             expected = "level 3 (0)",
-            actual = testBackstackTree.find { it.id == 3 }?.label,
+            actual = testBackstackTree.find { it.id == 3 }?.destinationId,
             message = "Error when trying to find \"level 3 (0)\" entry",
         )
         assertEquals(
             expected = "level 3 (1)",
-            actual = testBackstackTree.find { it.id == 4 }?.label,
+            actual = testBackstackTree.find { it.id == 4 }?.destinationId,
             message = "Error when trying to find \"level 3 (1)\" entry",
         )
         assertEquals(
             expected = "level 2 (1)",
-            actual = testBackstackTree.find { it.id == 5 }?.label,
+            actual = testBackstackTree.find { it.id == 5 }?.destinationId,
             message = "Error when trying to find \"level 2 (1)\" entry",
         )
         assertEquals(
             expected = "level 1 (1)",
-            actual = testBackstackTree.find { it.id == 6 }?.label,
+            actual = testBackstackTree.find { it.id == 6 }?.destinationId,
             message = "Error when trying to find \"level 1 (1)\" entry",
         )
         assertEquals(
             expected = "level 2 (2)",
-            actual = testBackstackTree.find { it.id == 7 }?.label,
+            actual = testBackstackTree.find { it.id == 7 }?.destinationId,
             message = "Error when trying to find \"level 2 (2)\" entry",
         )
         assertEquals(
             expected = "level 2 (3)",
-            actual = testBackstackTree.find { it.id == 8 }?.label,
+            actual = testBackstackTree.find { it.id == 8 }?.destinationId,
             message = "Error when trying to find \"level 2 (3)\" entry",
         )
         assertEquals(
             expected = "level 1 (2)",
-            actual = testBackstackTree.find { it.id == 9 }?.label,
+            actual = testBackstackTree.find { it.id == 9 }?.destinationId,
             message = "Error when trying to find \"level 1 (2)\" entry",
         )
         assertEquals(
             expected = "level 1 (3)",
-            actual = testBackstackTree.find { it.id == 10 }?.label,
+            actual = testBackstackTree.find { it.id == 10 }?.destinationId,
             message = "Error when trying to find \"level 1 (3)\" entry",
         )
     }
@@ -132,15 +133,15 @@ class ElastikStateTest {
             with(testBackstackTree) {
                 this
                     // add one single entry to "root"
-                    .transform(id = 0) { it + single(id = 11, label = "level 1 (4) (added)") }
+                    .transform(id = 0) { it + single(id = 11, destinationId = "level 1 (4) (added)") }
                     // add one single entry to "level 1 (0)"
-                    .transform(id = 1) { it + single(id = 12, label = "level 2 (4) (added)") }
+                    .transform(id = 1) { it + single(id = 12, destinationId = "level 2 (4) (added)") }
                     // replace "level 3 (1)" with level 3 (1) (replaced)
                     .transform(id = 2) {
-                        it.dropLast(1) + single(id = 13, label = "level 3 (1) (replaced)")
+                        it.dropLast(1) + single(id = 13, destinationId = "level 3 (1) (replaced)")
                     }
                     // delete "level 1 (1)"
-                    .transform(id = 0) { entries -> entries.filter { it.label != "level 1 (1)" } }
+                    .transform(id = 0) { entries -> entries.filter { it.destinationId != "level 1 (1)" } }
                     // try to transform backstack which is not existing
                     .transform(id = 123) { emptyList() }
             }
@@ -161,24 +162,24 @@ class ElastikStateTest {
                     // add one single entry to "root"
                     BackstackTransformation(
                         backstackId = 0,
-                        transformation = { it + single(id = 11, label = "level 1 (4) (added)") },
+                        transformation = { it + single(id = 11, destinationId = "level 1 (4) (added)") },
                     ),
                     // add one single entry to "level 1 (0)"
                     BackstackTransformation(
                         backstackId = 1,
-                        transformation = { it + single(id = 12, label = "level 2 (4) (added)") },
+                        transformation = { it + single(id = 12, destinationId = "level 2 (4) (added)") },
                     ),
                     // replace "level 3 (1)" with level 3 (1) (replaced)
                     BackstackTransformation(
                         backstackId = 2,
                         transformation = {
-                            it.dropLast(1) + single(id = 13, label = "level 3 (1) (replaced)")
+                            it.dropLast(1) + single(id = 13, destinationId = "level 3 (1) (replaced)")
                         },
                     ),
                     // delete "level 1 (1)"
                     BackstackTransformation(
                         backstackId = 0,
-                        transformation = { entries -> entries.filter { it.label != "level 1 (1)" } },
+                        transformation = { entries -> entries.filter { it.destinationId != "level 1 (1)" } },
                     ),
                     // try to transform backstack which is not existing
                     BackstackTransformation(
@@ -205,23 +206,36 @@ class ElastikStateTest {
             message = "Error when trying to push transaction with transformations",
         )
     }
+
+    @Test
+    fun `Blocking subscription test`() {
+        val stateHolder = ElastikStateHolder(testBackstackTree)
+        var result: Backstack? = null
+        stateHolder.subscribeBlocking { result = it }
+        stateHolder.pushTransaction(BackstackTransaction(emptyList()))
+        assertEquals(
+            expected = stateHolder.state.value,
+            actual = result,
+            message = "onTransactionApplied callback has not been executed",
+        )
+    }
 }
 
 private object TestBackstackTreeHelper {
-    fun backstack(id: Int, label: String, entries: List<BackstackEntry>): Backstack {
+    fun backstack(id: Int, destinationId: String, entries: List<BackstackEntry>): Backstack {
         return Backstack(
             id = id,
-            label = label,
-            args = null,
+            args = EmptyArguments,
+            destinationId = destinationId,
             entries = entries,
         )
     }
 
-    fun single(id: Int, label: String): SingleEntry {
+    fun single(id: Int, destinationId: String): SingleEntry {
         return SingleEntry(
             id = id,
-            label = label,
-            args = null,
+            args = EmptyArguments,
+            destinationId = destinationId,
         )
     }
 }
