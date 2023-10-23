@@ -1,0 +1,22 @@
+package com.keyflare.elastik.core
+
+object Errors {
+
+    fun destinationAlreadyExists(destinationId: String) =
+        "Destination with the ID \"$destinationId\" already exists. Each destination must have a unique for whole router tree ID."
+
+    fun routerNotFound(destinationId: String) =
+        "Router for the destination \"$destinationId\" not found. It seems there is no such a backstack entry in the backstack."
+
+    fun getNewRouterDataError() =
+        "No data provided for a new router"
+
+    fun noBackstackAssociated(backstackEntryId: Int) =
+        "There is no backstack associated with this router (\"$backstackEntryId\")"
+
+    fun backstackEntryUnexpectedType(backstackEntryId: Int, backstackExpected: Boolean) =
+        "Backstack entry with ID \"$backstackEntryId\" has unexpected type: ${if (backstackExpected) "backstack" else "single"} expected"
+
+    fun parentRouterContextMismatch(destinationId: String) =
+        "Parent router context mismatch for destination \"$destinationId\""
+}

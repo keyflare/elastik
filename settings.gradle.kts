@@ -17,11 +17,9 @@ rootProject.name = "elastik"
 
 // Library
 include(":elastik")
+include(":elastik:elastik-core")
+include(":elastik:elastik-compose")
 
 // Samples
 include(":sample:app-android")
-include(":elastik:elastik-core")
-include(":elastik:elastik-routing")
-include(":elastik:elastik-render")
 include(":sample:shared")
-include(":elastik-compose")
