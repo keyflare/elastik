@@ -54,11 +54,14 @@ sealed class BaseRouter(context: ElastikContext) {
         syncState()
     }
 
-    internal fun addSingleDestinationBinding(destinationId: String) {
+    internal fun addSingleDestinationBinding(
+        destinationId: String,
+        componentFactory: (() -> Any),
+    ) {
         require(!routingContext.isDestinationAlreadyExist(destinationId)) {
             Errors.destinationAlreadyExists(destinationId)
         }
-        singleDestinationBindings[destinationId] = SingleDestinationBinding()
+        singleDestinationBindings[destinationId] = SingleDestinationBinding(componentFactory)
     }
 
     internal fun addBackstackDestinationBinding(
@@ -119,7 +122,10 @@ sealed class BaseRouter(context: ElastikContext) {
                 when (entryWrapper.entry) {
                     is SingleEntry -> {
                         childSingleEntriesData[entryWrapper.backstackEntryId] =
-                            BackstackEntryData.SingleEntryData(entryWrapper.entry)
+                            BackstackEntryData.SingleEntryData(
+                                backstackEntry = entryWrapper.entry,
+                                component = createComponentForBackstackEntry(entryWrapper.entry),
+                            )
                     }
 
                     is Backstack -> {
@@ -135,6 +141,12 @@ sealed class BaseRouter(context: ElastikContext) {
         )
     }
 
+    private fun createComponentForBackstackEntry(backstackEntry: BackstackEntry): Any {
+        return singleDestinationBindings[backstackEntry.destinationId]
+            .requireNotNull()
+            .componentFactory()
+    }
+
     private fun createRouterForBackstackEntry(backstackEntry: BackstackEntry): BaseRouter {
         routingContext.rememberDataForNewRouter(
             backstackEntryId = backstackEntry.id,
@@ -148,6 +160,10 @@ sealed class BaseRouter(context: ElastikContext) {
 
         routingContext.clearNewRouterData()
         return router
+    }
+
+    internal fun findComponentOrNull(backstackEntryId: Int): Any? {
+        return childSingleEntriesData[backstackEntryId]?.component
     }
 
     internal fun findRouterOrNull(backstackEntryId: Int): BaseRouter? {
@@ -167,6 +183,7 @@ sealed class BaseRouter(context: ElastikContext) {
 
         class SingleEntryData(
             override val backstackEntry: SingleEntry,
+            val component: Any,
         ) : BackstackEntryData
 
         data class BackstackData(
@@ -175,7 +192,9 @@ sealed class BaseRouter(context: ElastikContext) {
         ) : BackstackEntryData
     }
 
-    private class SingleDestinationBinding
+    private class SingleDestinationBinding(
+        val componentFactory: (() -> Any),
+    )
 
     private class BackstackDestinationBinding(
         val routerFactory: (ElastikContext) -> BaseRouter,

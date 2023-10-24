@@ -37,7 +37,16 @@ internal class RoutersTreeTest {
         assertEquals(
             expected = RootRouter(ElastikContext.create()).mainRouter.router.destinationId,
             actual = root.mainRouter.destination.id,
-            message = "After routers tree creation static backstack entry are still unavailable",
+            message = "After routers tree creation static backstack entry (router) are still unavailable",
+        )
+
+        assertNotNull(
+            actual = RootRouter(ElastikContext.create())
+                .mainRouter
+                .router
+                .splashScreen
+                .peekComponentOrNull(),
+            message = "After routers tree creation dynamic backstack entry navigated immediately (component) are still unavailable",
         )
 
         val mainRouter = root.mainRouter.router
@@ -47,13 +56,18 @@ internal class RoutersTreeTest {
         )
         val bottomNavigationScreenRouter = mainRouter.bottomNavigationScreen.peekRouterOrNull()
         val settingsRouter = bottomNavigationScreenRouter?.settingsTab?.router
+        val dashboardComponent = bottomNavigationScreenRouter?.dashboardTab?.component
         assertNotNull(
             actual = bottomNavigationScreenRouter,
-            message = "After navigation dynamic backstack entry is still unavailable",
+            message = "After navigation dynamic backstack entry (router) is still unavailable",
         )
         assertNotNull(
             actual = settingsRouter,
-            message = "After navigation static backstack entry is still unavailable",
+            message = "After navigation static backstack entry (router) is still unavailable",
+        )
+        assertNotNull(
+            actual = dashboardComponent,
+            message = "After navigation static backstack entry (component) is still unavailable",
         )
     }
 
@@ -109,10 +123,12 @@ internal class RoutersTreeTest {
                 val a = singleNoArgs(
                     destinationId = destinationId,
                     render = RenderStub,
+                    componentFactory = ::ComponentStub,
                 )
                 val b = singleNoArgs(
                     destinationId = destinationId,
                     render = RenderStub,
+                    componentFactory = ::ComponentStub,
                 )
             }
         }
@@ -122,11 +138,13 @@ internal class RoutersTreeTest {
                     destinationId = destinationId,
                     args = ArgsStub(),
                     render = RenderStub,
+                    componentFactory = ::ComponentStub,
                 )
                 val b = single(
                     destinationId = destinationId,
                     args = ArgsStub(),
                     render = RenderStub,
+                    componentFactory = ::ComponentStub,
                 )
             }
         }
@@ -170,3 +188,5 @@ private fun assertParentIsCorrect(router: BaseRouter, parentRouter: BaseRouter?)
         message = "Incorrect parent set for router \"${router.destinationId}\""
     )
 }
+
+class ComponentStub

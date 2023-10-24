@@ -8,6 +8,9 @@ object Errors {
     fun routerNotFound(destinationId: String) =
         "Router for the destination \"$destinationId\" not found. It seems there is no such a backstack entry in the backstack."
 
+    fun componentNotFound(destinationId: String) =
+        "Component for the destination \"$destinationId\" not found. It seems there is no such a backstack entry in the backstack."
+
     fun getNewRouterDataError() =
         "No data provided for a new router"
 
