@@ -9,8 +9,6 @@ import com.keyflare.elastik.core.state.backstack
 import com.keyflare.elastik.core.state.find
 import com.keyflare.elastik.core.ElastikContext
 import com.keyflare.elastik.core.Errors
-import com.keyflare.elastik.core.render.Render
-import com.keyflare.elastik.core.render.RenderStub
 import com.keyflare.elastik.core.routing.RoutingContext
 import com.keyflare.elastik.core.util.castOrError
 import com.keyflare.elastik.core.util.requireNotNull
@@ -23,9 +21,7 @@ sealed class BaseRouter(context: ElastikContext) {
     private val backstackDestinationBindings = mutableMapOf<String, BackstackDestinationBinding>()
     private val childSingleEntriesData = mutableMapOf<Int, BackstackEntryData.SingleEntryData>()
     private val childBackstacksData = mutableMapOf<Int, BackstackEntryData.BackstackData>()
-    private val routerBindings = mutableMapOf<String, (RoutingContext) -> BaseRouter>()
     private var lastSyncEntries: List<BackstackEntryWrapper> = emptyList()
-    private val render: Render
 
     internal val state: ElastikStateHolder
     internal val routingContext: RoutingContext
@@ -48,7 +44,6 @@ sealed class BaseRouter(context: ElastikContext) {
         destinationId = data.destinationId
         backstackEntryId = data.backstackEntryId
         parent = data.parent
-        render = data.render
 
         validateData()
         syncState()
@@ -152,7 +147,6 @@ sealed class BaseRouter(context: ElastikContext) {
             backstackEntryId = backstackEntry.id,
             destinationId = backstackEntry.destinationId,
             parent = this,
-            render = RenderStub, // TODO implement Render passing
         )
         val router = backstackDestinationBindings[backstackEntry.destinationId]
             .requireNotNull()

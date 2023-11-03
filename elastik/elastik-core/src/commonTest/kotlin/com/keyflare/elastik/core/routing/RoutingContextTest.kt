@@ -1,7 +1,6 @@
 package com.keyflare.elastik.core.routing
 
 import com.keyflare.elastik.core.ElastikContext
-import com.keyflare.elastik.core.render.Render
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
 import kotlin.test.BeforeTest
@@ -14,7 +13,6 @@ internal class RoutingContextTest {
 
     private var context: RoutingContext = ElastikContext.create()
     private var routerStub: BaseRouter = object : StaticRouter(ElastikContext.create()) {}
-    private val renderStub: Render = object : Render {}
 
     @BeforeTest
     fun beforeEach() {
@@ -43,14 +41,12 @@ internal class RoutingContextTest {
                 destinationId = iteration.toString(),
                 backstackEntryId = iteration,
                 parent = routerStub,
-                render = renderStub,
             )
             assertEquals(
                 expected = NewRouterData(
                     destinationId = iteration.toString(),
                     backstackEntryId = iteration,
                     parent = routerStub,
-                    render = renderStub,
                 ),
                 actual = context.getNewRouterData(),
                 message = "Invalid data prepared for the new router (check iteration #$iteration)"

@@ -7,7 +7,8 @@ import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.Destination
 import com.keyflare.elastik.core.ElastikContext
 import com.keyflare.elastik.core.Errors
-import com.keyflare.elastik.core.render.Render
+import com.keyflare.elastik.core.render.BackstackRender
+import com.keyflare.elastik.core.render.SingleRender
 
 abstract class DynamicBackstackDestination<Args : Arguments, Router : BaseRouter>(
     val destination: Destination<Args>,
@@ -16,7 +17,7 @@ abstract class DynamicBackstackDestination<Args : Arguments, Router : BaseRouter
     abstract fun peekRouterOrNull(): Router?
 }
 
-abstract class DynamicSingleDestination<Args: Arguments, Component : Any>(
+abstract class DynamicSingleDestination<Args : Arguments, Component : Any>(
     val destination: Destination<Args>
 ) {
     abstract fun peekComponent(): Component
@@ -27,26 +28,26 @@ interface DynamicRouterTreeBuilder {
 
     fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        render: Render,
         componentFactory: () -> Component,
+        renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<EmptyArguments, Component>
 
     fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
-        render: Render,
         componentFactory: () -> Component,
+        renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<Args, Component>
 
     fun <Router : BaseRouter> BaseRouter.backstackNoArgs(
         destinationId: String,
-        render: Render,
         routerFactory: (ElastikContext) -> Router,
+        renderFactory: (Router) -> BackstackRender,
     ): DynamicBackstackDestination<EmptyArguments, Router>
 
     fun <Args : Arguments, Router : BaseRouter> BaseRouter.backstack(
         destinationId: String,
-        render: Render,
         routerFactory: (ElastikContext) -> Router,
+        renderFactory: (Router) -> BackstackRender,
     ): DynamicBackstackDestination<Args, Router>
 }
 
@@ -54,19 +55,20 @@ class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
 
     override fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        render: Render,
         componentFactory: () -> Component,
+        renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<EmptyArguments, Component> {
-        return single(destinationId, render, componentFactory)
+        return single(destinationId, componentFactory, renderFactory)
     }
 
     override fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
-        render: Render,
         componentFactory: () -> Component,
+        renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<Args, Component> {
-        routingContext.addRenderBinding(destinationId, render)
+
         addSingleDestinationBinding(destinationId, componentFactory)
+        routingContext.sendSingleRenderBinding(destinationId, renderFactory)
 
         // TODO MVP Solution!!! Refactor this approach
         return object : DynamicSingleDestination<Args, Component>(
@@ -91,20 +93,20 @@ class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
 
     override fun <Router : BaseRouter> BaseRouter.backstackNoArgs(
         destinationId: String,
-        render: Render,
-        routerFactory: (ElastikContext) -> Router
+        routerFactory: (ElastikContext) -> Router,
+        renderFactory: (Router) -> BackstackRender,
     ): DynamicBackstackDestination<EmptyArguments, Router> {
-        return backstack(destinationId, render, routerFactory)
+        return backstack(destinationId, routerFactory, renderFactory)
     }
 
     override fun <Args : Arguments, Router : BaseRouter> BaseRouter.backstack(
         destinationId: String,
-        render: Render,
         routerFactory: (ElastikContext) -> Router,
+        renderFactory: (Router) -> BackstackRender,
     ): DynamicBackstackDestination<Args, Router> {
 
         addBackstackDestinationBinding(destinationId, routerFactory)
-        routingContext.addRenderBinding(destinationId, render)
+        routingContext.sendBackstackRenderBinding(destinationId, renderFactory)
 
         // TODO MVP Solution!!! Refactor this approach
         return object : DynamicBackstackDestination<Args, Router>(

@@ -2,7 +2,7 @@ package com.keyflare.elastik.core.routing
 
 import com.keyflare.elastik.core.state.Arguments
 import com.keyflare.elastik.core.ElastikContext
-import com.keyflare.elastik.core.render.RenderStub
+import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
 import kotlinx.coroutines.Dispatchers
@@ -113,6 +113,7 @@ internal class RoutersTreeTest {
     @Test
     fun `Destination ID validation test`() {
         val destinationId = "destination"
+
         class ArgsStub : Arguments
 
         // Check that providing not a unique
@@ -122,12 +123,12 @@ internal class RoutersTreeTest {
             object : StaticRouter(ElastikContext.create()) {
                 val a = singleNoArgs(
                     destinationId = destinationId,
-                    render = RenderStub,
+                    renderFactory = { NoRender },
                     componentFactory = ::ComponentStub,
                 )
                 val b = singleNoArgs(
                     destinationId = destinationId,
-                    render = RenderStub,
+                    renderFactory = { NoRender },
                     componentFactory = ::ComponentStub,
                 )
             }
@@ -137,13 +138,13 @@ internal class RoutersTreeTest {
                 val a = single(
                     destinationId = destinationId,
                     args = ArgsStub(),
-                    render = RenderStub,
+                    renderFactory = { NoRender },
                     componentFactory = ::ComponentStub,
                 )
                 val b = single(
                     destinationId = destinationId,
                     args = ArgsStub(),
-                    render = RenderStub,
+                    renderFactory = { NoRender },
                     componentFactory = ::ComponentStub,
                 )
             }
@@ -152,12 +153,12 @@ internal class RoutersTreeTest {
             object : StaticRouter(ElastikContext.create()) {
                 val a = backstackNoArgs(
                     destinationId = destinationId,
-                    render = RenderStub,
+                    renderFactory = { NoRender },
                     routerFactory = { MainRouter(it) },
                 )
                 val b = backstackNoArgs(
                     destinationId = destinationId,
-                    render = RenderStub,
+                    renderFactory = { NoRender },
                     routerFactory = { MainRouter(it) },
                 )
             }
@@ -166,14 +167,14 @@ internal class RoutersTreeTest {
             object : StaticRouter(ElastikContext.create()) {
                 val a = backstack(
                     destinationId = destinationId,
-                    render = RenderStub,
                     args = ArgsStub(),
+                    renderFactory = { NoRender },
                     routerFactory = { MainRouter(it) },
                 )
                 val b = backstack(
                     destinationId = destinationId,
-                    render = RenderStub,
                     args = ArgsStub(),
+                    renderFactory = { NoRender },
                     routerFactory = { MainRouter(it) },
                 )
             }

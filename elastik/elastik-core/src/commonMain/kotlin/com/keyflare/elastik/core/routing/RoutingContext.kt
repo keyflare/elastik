@@ -1,8 +1,8 @@
 package com.keyflare.elastik.core.routing
 
 import com.keyflare.elastik.core.Errors
-import com.keyflare.elastik.core.render.Render
-import com.keyflare.elastik.core.render.RenderStub
+import com.keyflare.elastik.core.render.BackstackRender
+import com.keyflare.elastik.core.render.SingleRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.state.ElastikStateHolder
 
@@ -13,16 +13,20 @@ internal interface RoutingContext {
 
     fun obtainIdForNewBackstackEntry(): Int
 
-    fun addRenderBinding(
+    fun <Component : Any> sendSingleRenderBinding(
         destinationId: String,
-        render: Render,
+        renderFactory: (Component) -> SingleRender,
+    )
+
+    fun <Router : BaseRouter> sendBackstackRenderBinding(
+        destinationId: String,
+        renderFactory: (Router) -> BackstackRender,
     )
 
     fun rememberDataForNewRouter(
         destinationId: String,
         backstackEntryId: Int,
         parent: BaseRouter,
-        render: Render,
     )
 
     fun getNewRouterData(): NewRouterData
@@ -46,21 +50,29 @@ internal class RoutingContextImpl(override val state: ElastikStateHolder) : Rout
         return backstackEntryIdIncrement
     }
 
-    override fun addRenderBinding(destinationId: String, render: Render) {
-        // TODO implement
+    override fun <Component : Any> sendSingleRenderBinding(
+        destinationId: String,
+        renderFactory: (Component) -> SingleRender
+    ) {
+        error("Should be overridden")
+    }
+
+    override fun <Router : BaseRouter> sendBackstackRenderBinding(
+        destinationId: String,
+        renderFactory: (Router) -> BackstackRender
+    ) {
+        error("Should be overridden")
     }
 
     override fun rememberDataForNewRouter(
         destinationId: String,
         backstackEntryId: Int,
         parent: BaseRouter,
-        render: Render
     ) {
         dataForNewRouter = NewRouterData(
             destinationId = destinationId,
             backstackEntryId = backstackEntryId,
             parent = parent,
-            render = render,
         )
     }
 
@@ -81,12 +93,10 @@ internal data class NewRouterData(
     val destinationId: String,
     val backstackEntryId: Int,
     val parent: BaseRouter?,
-    val render: Render,
 )
 
 internal val ROOT_ROUTER_DATA = NewRouterData(
     destinationId = "root",
     backstackEntryId = -1,
     parent = null,
-    render = RenderStub,
 )

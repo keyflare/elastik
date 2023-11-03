@@ -9,7 +9,8 @@ import com.keyflare.elastik.core.state.SingleEntry
 import com.keyflare.elastik.core.state.find
 import com.keyflare.elastik.core.ElastikContext
 import com.keyflare.elastik.core.Errors
-import com.keyflare.elastik.core.render.Render
+import com.keyflare.elastik.core.render.BackstackRender
+import com.keyflare.elastik.core.render.SingleRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.Destination
 import com.keyflare.elastik.core.util.requireNotNull
@@ -30,28 +31,28 @@ interface StaticRouterTreeBuilder {
 
     fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        render: Render,
         componentFactory: () -> Component,
+        renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<EmptyArguments, Component>
 
     fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
         args: Args,
-        render: Render,
         componentFactory: () -> Component,
+        renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<Args, Component>
 
     fun <Router : BaseRouter> BaseRouter.backstackNoArgs(
         destinationId: String,
-        render: Render,
         routerFactory: (ElastikContext) -> Router,
+        renderFactory: (Router) -> BackstackRender,
     ): StaticBackstackDestination<EmptyArguments, Router>
 
     fun <Args : Arguments, Router : BaseRouter> BaseRouter.backstack(
         destinationId: String,
         args: Args,
-        render: Render,
         routerFactory: (ElastikContext) -> Router,
+        renderFactory: (Router) -> BackstackRender,
     ): StaticBackstackDestination<Args, Router>
 }
 
@@ -59,20 +60,21 @@ class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
 
     override fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        render: Render,
         componentFactory: () -> Component,
+        renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<EmptyArguments, Component> {
-        return single(destinationId, EmptyArguments, render, componentFactory)
+        return single(destinationId, EmptyArguments, componentFactory, renderFactory)
     }
 
     override fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
         args: Args,
-        render: Render,
         componentFactory: () -> Component,
+        renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<Args, Component> {
-        routingContext.addRenderBinding(destinationId, render)
+
         addSingleDestinationBinding(destinationId, componentFactory)
+        routingContext.sendSingleRenderBinding(destinationId, renderFactory)
 
         val addEntryTransformation = BackstackTransformation(
             backstackId = backstack.id,
@@ -106,29 +108,28 @@ class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
 
     override fun <Router : BaseRouter> BaseRouter.backstackNoArgs(
         destinationId: String,
-        render: Render,
-        routerFactory: (ElastikContext) -> Router
+        routerFactory: (ElastikContext) -> Router,
+        renderFactory: (Router) -> BackstackRender,
     ): StaticBackstackDestination<EmptyArguments, Router> {
-        return backstack(destinationId, EmptyArguments, render, routerFactory)
+        return backstack(destinationId, EmptyArguments, routerFactory, renderFactory)
     }
 
     override fun <Args : Arguments, Router : BaseRouter> BaseRouter.backstack(
         destinationId: String,
         args: Args,
-        render: Render,
         routerFactory: (ElastikContext) -> Router,
+        renderFactory: (Router) -> BackstackRender,
     ): StaticBackstackDestination<Args, Router> {
         // TODO check main thread
 
         addBackstackDestinationBinding(destinationId, routerFactory)
-        routingContext.addRenderBinding(destinationId, render)
+        routingContext.sendBackstackRenderBinding(destinationId, renderFactory)
 
-        val backstackEntryId = routingContext.obtainIdForNewBackstackEntry()
         val addEntryTransformation = BackstackTransformation(
             backstackId = backstack.id,
             transformation = { entries ->
                 val newEntry = Backstack(
-                    id = backstackEntryId,
+                    id = routingContext.obtainIdForNewBackstackEntry(),
                     args = args,
                     destinationId = destinationId,
                     entries = emptyList(),
