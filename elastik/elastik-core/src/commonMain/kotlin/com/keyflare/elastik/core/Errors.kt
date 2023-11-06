@@ -1,6 +1,6 @@
 package com.keyflare.elastik.core
 
-object Errors {
+internal object Errors {
 
     fun destinationAlreadyExists(destinationId: String) =
         "Destination with the ID \"$destinationId\" already exists. Each destination must have a unique for whole router tree ID."

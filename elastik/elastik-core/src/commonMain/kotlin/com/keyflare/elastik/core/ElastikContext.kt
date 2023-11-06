@@ -29,7 +29,7 @@ class ElastikContext private constructor(
         addBackstackRenderBinding(destinationId, renderFactory)
     }
 
-    internal companion object {
+    companion object {
 
         fun create(): ElastikContext {
             return ElastikContext(state = ElastikStateHolder())

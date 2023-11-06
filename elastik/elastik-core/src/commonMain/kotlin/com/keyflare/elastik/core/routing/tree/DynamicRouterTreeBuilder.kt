@@ -51,7 +51,7 @@ interface DynamicRouterTreeBuilder {
     ): DynamicBackstackDestination<Args, Router>
 }
 
-class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
+internal class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
 
     override fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,

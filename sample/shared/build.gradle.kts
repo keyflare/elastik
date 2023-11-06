@@ -32,7 +32,10 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                //put your multiplatform dependencies here
+                implementation(libs.coroutines)
+                implementation(libs.kermit)
+
+                implementation(project(":elastik:elastik-core"))
             }
         }
     }

@@ -56,7 +56,7 @@ interface StaticRouterTreeBuilder {
     ): StaticBackstackDestination<Args, Router>
 }
 
-class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
+internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
 
     override fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,

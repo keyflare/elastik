@@ -12,7 +12,6 @@ data class SingleEntry(
     override val destinationId: String,
 ) : BackstackEntry
 
-
 data class Backstack(
     override val id: Int,
     override val args: Arguments,
