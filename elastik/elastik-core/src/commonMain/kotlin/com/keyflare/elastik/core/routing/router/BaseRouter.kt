@@ -12,7 +12,7 @@ import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.routing.RoutingContext
 import com.keyflare.elastik.core.util.castOrError
 import com.keyflare.elastik.core.util.requireNotNull
-import dev.andrewbailey.diff.differenceOf
+import com.keyflare.elastik.core.routing.diff.differenceOf
 
 // TODO maybe create an interface
 sealed class BaseRouter(context: ElastikContext) {

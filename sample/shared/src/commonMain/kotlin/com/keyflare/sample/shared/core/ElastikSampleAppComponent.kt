@@ -2,7 +2,7 @@ package com.keyflare.sample.shared.core
 
 import com.keyflare.elastik.core.ElastikContext
 
-object ElastikSampleApp {
+class ElastikSampleAppComponent {
     val elastikContext = ElastikContext.create()
     val rootRouter = RootRouter(elastikContext)
 }

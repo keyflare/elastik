@@ -33,7 +33,6 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.coroutines)
-                implementation(libs.difference)
             }
         }
         val commonTest by getting {
