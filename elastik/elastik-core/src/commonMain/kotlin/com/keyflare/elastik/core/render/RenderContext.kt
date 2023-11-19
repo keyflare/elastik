@@ -3,7 +3,7 @@ package com.keyflare.elastik.core.render
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.state.ElastikStateHolder
 
-internal interface RenderContext {
+interface RenderContext {
 
     fun <Component : Any> addSingleRenderBinding(
         destinationId: String,

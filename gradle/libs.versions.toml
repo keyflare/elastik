@@ -3,6 +3,9 @@
 kotlin = "1.9.10"
 agp = "8.1.0"
 coroutines = "1.7.3"
+compose = "1.5.4"
+compose-plugin = "1.5.3"
+compose-compiler = "1.5.3"
 kermit = "2.0.2"
 
 [libraries]
@@ -11,6 +14,9 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
+compose-android-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
+compose-android-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
+compose-android-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 
 [plugins]
 
@@ -19,5 +25,6 @@ kotlin-cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref =
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 android-application = { id = "com.android.application", version.ref = "agp" }
+jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 
 [bundles]

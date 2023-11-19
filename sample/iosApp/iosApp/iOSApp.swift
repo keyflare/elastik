@@ -1,10 +1,10 @@
 import SwiftUI
-import shared
+//import shared
 
 @main
 struct iOSApp: App {
     
-    let sharedApp = ElastikSampleAppComponent()
+//    let sharedApp = ElastikSampleAppComponent()
     
 	var body: some Scene {
 		WindowGroup {

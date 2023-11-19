@@ -1,7 +1,19 @@
 package com.keyflare.elastik.compose
 
-import com.keyflare.elastik.core.ElastikContext
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import com.keyflare.elastik.core.render.RenderContext
 
-fun ElastikCompose(context: ElastikContext) {
-
+@Composable
+fun ElastikCompose(context: RenderContext) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Text(
+            text = "Hello from compose multiplatform!",
+            modifier = Modifier.align(Alignment.Center)
+        )
+    }
 }

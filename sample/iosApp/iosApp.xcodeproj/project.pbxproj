@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -12,6 +12,7 @@
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
 		9A98CE4ABC944A93D5BA1E59 /* Pods_iosApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FD0B7A925640AFF18F52DEA /* Pods_iosApp.framework */; };
+		F94A5A912B0A3C82009B0CA2 /* SharedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F94A5A902B0A3C82009B0CA2 /* SharedApp.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +26,7 @@
 		A25F4830A2224E68876E0D63 /* Pods-iosApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.release.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.release.xcconfig"; sourceTree = "<group>"; };
 		AB3632DC29227652001CCB65 /* Config.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		D8FF5DAD2303749034167644 /* Pods-iosApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.debug.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.debug.xcconfig"; sourceTree = "<group>"; };
+		F94A5A902B0A3C82009B0CA2 /* SharedApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,7 +55,6 @@
 				D8FF5DAD2303749034167644 /* Pods-iosApp.debug.xcconfig */,
 				A25F4830A2224E68876E0D63 /* Pods-iosApp.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -92,6 +93,7 @@
 				7555FF8C242A565B00829871 /* Info.plist */,
 				2152FB032600AC8F00CF470E /* iOSApp.swift */,
 				058557D7273AAEEB004C7B11 /* Preview Content */,
+				F94A5A902B0A3C82009B0CA2 /* SharedApp.swift */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -117,6 +119,7 @@
 				7555FF79242A565900829871 /* Resources */,
 				6DA9D5E6DE4B10DA477150CE /* Frameworks */,
 				F7FAF4ADE6142225634E1DD7 /* [CP] Embed Pods Frameworks */,
+				6DDE1B1DF518CB3F40AE2916 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -173,6 +176,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		6DDE1B1DF518CB3F40AE2916 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		C7794AC1609CC4AB8D2C1064 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -239,6 +259,7 @@
 			files = (
 				2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */,
 				7555FF83242A565900829871 /* ContentView.swift in Sources */,
+				F94A5A912B0A3C82009B0CA2 /* SharedApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

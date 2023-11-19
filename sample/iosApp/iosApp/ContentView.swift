@@ -1,19 +1,17 @@
 import SwiftUI
+import shared
+
+struct ComposeView: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> UIViewController {
+        ElastikSampleAppViewIosKt.ElastikSampleAppViewIos(context: sharedApp.elastikContext)
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
-        }
-        .padding()
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
+        ComposeView()
+                .ignoresSafeArea(.keyboard) // Compose has own keyboard handler
     }
 }
