@@ -29,19 +29,19 @@ internal class RoutersTreeTest {
 
     @BeforeTest
     fun beforeEach() {
-        root = RootRouter(ElastikContext.create())
+        root = RootRouter(ElastikContext.create(NoRender))
     }
 
     @Test
     fun `Synchronicity of navigation test`() = runTest {
         assertEquals(
-            expected = RootRouter(ElastikContext.create()).mainRouter.router.destinationId,
+            expected = RootRouter(ElastikContext.create(NoRender)).mainRouter.router.destinationId,
             actual = root.mainRouter.destination.id,
             message = "After routers tree creation static backstack entry (router) are still unavailable",
         )
 
         assertNotNull(
-            actual = RootRouter(ElastikContext.create())
+            actual = RootRouter(ElastikContext.create(NoRender))
                 .mainRouter
                 .router
                 .splashScreen
@@ -120,7 +120,7 @@ internal class RoutersTreeTest {
         // destination ID will cause an error
 
         assertFails {
-            object : StaticRouter(ElastikContext.create()) {
+            object : StaticRouter(ElastikContext.create(NoRender)) {
                 val a = singleNoArgs(
                     destinationId = destinationId,
                     renderFactory = { NoRender },
@@ -134,7 +134,7 @@ internal class RoutersTreeTest {
             }
         }
         assertFails {
-            object : StaticRouter(ElastikContext.create()) {
+            object : StaticRouter(ElastikContext.create(NoRender)) {
                 val a = single(
                     destinationId = destinationId,
                     args = ArgsStub(),
@@ -150,7 +150,7 @@ internal class RoutersTreeTest {
             }
         }
         assertFails {
-            object : StaticRouter(ElastikContext.create()) {
+            object : StaticRouter(ElastikContext.create(NoRender)) {
                 val a = backstackNoArgs(
                     destinationId = destinationId,
                     renderFactory = { NoRender },
@@ -164,7 +164,7 @@ internal class RoutersTreeTest {
             }
         }
         assertFails {
-            object : StaticRouter(ElastikContext.create()) {
+            object : StaticRouter(ElastikContext.create(NoRender)) {
                 val a = backstack(
                     destinationId = destinationId,
                     args = ArgsStub(),

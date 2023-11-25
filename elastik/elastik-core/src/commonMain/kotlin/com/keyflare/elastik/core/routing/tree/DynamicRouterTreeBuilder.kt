@@ -67,8 +67,9 @@ internal class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
         renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<Args, Component> {
 
-        addSingleDestinationBinding(destinationId, componentFactory)
-        routingContext.sendSingleRenderBinding(destinationId, renderFactory)
+        @Suppress("UNCHECKED_CAST")
+        val renderFactoryImpl = { component: Any -> renderFactory(component as Component) }
+        addSingleDestinationBinding(destinationId, componentFactory, renderFactoryImpl)
 
         // TODO MVP Solution!!! Refactor this approach
         return object : DynamicSingleDestination<Args, Component>(
@@ -105,8 +106,9 @@ internal class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
         renderFactory: (Router) -> BackstackRender,
     ): DynamicBackstackDestination<Args, Router> {
 
-        addBackstackDestinationBinding(destinationId, routerFactory)
-        routingContext.sendBackstackRenderBinding(destinationId, renderFactory)
+        @Suppress("UNCHECKED_CAST")
+        val renderFactoryImpl = { router: BaseRouter -> renderFactory(router as Router) }
+        addBackstackDestinationBinding(destinationId, routerFactory, renderFactoryImpl)
 
         // TODO MVP Solution!!! Refactor this approach
         return object : DynamicBackstackDestination<Args, Router>(

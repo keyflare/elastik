@@ -1,6 +1,7 @@
 package com.keyflare.elastik.core.routing
 
 import com.keyflare.elastik.core.ElastikContext
+import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
 import kotlin.test.BeforeTest
@@ -11,13 +12,14 @@ import kotlin.test.assertTrue
 
 internal class RoutingContextTest {
 
-    private var context: RoutingContext = ElastikContext.create()
-    private var routerStub: BaseRouter = object : StaticRouter(ElastikContext.create()) {}
+    private var context: RoutingContext = ElastikContext.create(NoRender)
+    private var routerStub: BaseRouter = object : StaticRouter(context as ElastikContext) {}
 
     @BeforeTest
     fun beforeEach() {
-        context = ElastikContext.create()
-        routerStub = object : StaticRouter(ElastikContext.create()) {}
+        val elastikContext = ElastikContext.create(NoRender)
+        context = elastikContext
+        routerStub = object : StaticRouter(elastikContext) {}
     }
 
     @Test

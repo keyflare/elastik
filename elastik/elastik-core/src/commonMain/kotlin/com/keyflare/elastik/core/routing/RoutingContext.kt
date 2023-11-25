@@ -13,15 +13,18 @@ internal interface RoutingContext {
 
     fun obtainIdForNewBackstackEntry(): Int
 
-    fun <Component : Any> sendSingleRenderBinding(
-        destinationId: String,
-        renderFactory: (Component) -> SingleRender,
+    fun sendSingleRender(
+        backstackEntryId: Int,
+        render: SingleRender,
     )
 
-    fun <Router : BaseRouter> sendBackstackRenderBinding(
-        destinationId: String,
-        renderFactory: (Router) -> BackstackRender,
+    fun sendBackstackRender(
+        backstackEntryId: Int,
+        render: BackstackRender,
     )
+
+    fun onSingleDestroyed(backstackEntryId: Int)
+    fun onBackstackDestroyed(backstackEntryId: Int)
 
     fun rememberDataForNewRouter(
         destinationId: String,
@@ -50,17 +53,25 @@ internal class RoutingContextImpl(override val state: ElastikStateHolder) : Rout
         return backstackEntryIdIncrement
     }
 
-    override fun <Component : Any> sendSingleRenderBinding(
-        destinationId: String,
-        renderFactory: (Component) -> SingleRender
+    override fun sendSingleRender(
+        backstackEntryId: Int,
+        render: SingleRender,
     ) {
         error("Should be overridden")
     }
 
-    override fun <Router : BaseRouter> sendBackstackRenderBinding(
-        destinationId: String,
-        renderFactory: (Router) -> BackstackRender
+    override fun sendBackstackRender(
+        backstackEntryId: Int,
+        render: BackstackRender,
     ) {
+        error("Should be overridden")
+    }
+
+    override fun onSingleDestroyed(backstackEntryId: Int) {
+        error("Should be overridden")
+    }
+
+    override fun onBackstackDestroyed(backstackEntryId: Int) {
         error("Should be overridden")
     }
 

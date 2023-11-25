@@ -6,7 +6,6 @@ import com.keyflare.elastik.core.render.RenderContextImpl
 import com.keyflare.elastik.core.render.SingleRender
 import com.keyflare.elastik.core.routing.RoutingContext
 import com.keyflare.elastik.core.routing.RoutingContextImpl
-import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.state.ElastikStateHolder
 
 class ElastikContext private constructor(
@@ -15,24 +14,41 @@ class ElastikContext private constructor(
     RenderContext by RenderContextImpl(state),
     RoutingContext by RoutingContextImpl(state) {
 
-    override fun <Component : Any> sendSingleRenderBinding(
-        destinationId: String,
-        renderFactory: (Component) -> SingleRender
+    override fun sendSingleRender(
+        backstackEntryId: Int,
+        render: SingleRender,
     ) {
-        addSingleRenderBinding(destinationId, renderFactory)
+        addSingleRender(backstackEntryId, render)
     }
 
-    override fun <Router : BaseRouter> sendBackstackRenderBinding(
-        destinationId: String,
-        renderFactory: (Router) -> BackstackRender
+    override fun sendBackstackRender(
+        backstackEntryId: Int,
+        render: BackstackRender,
     ) {
-        addBackstackRenderBinding(destinationId, renderFactory)
+        addBackstackRender(backstackEntryId, render)
+    }
+
+    override fun onSingleDestroyed(backstackEntryId: Int) {
+        removeSingleRender(backstackEntryId)
+    }
+
+    override fun onBackstackDestroyed(backstackEntryId: Int) {
+        removeBackstackRender(backstackEntryId)
     }
 
     companion object {
 
-        fun create(): ElastikContext {
-            return ElastikContext(state = ElastikStateHolder())
+        // TODO The initial idea was to define all navigation-connected stuff
+        //  in a one graph-like place (hierarchy of routers). But here we
+        //  define rootRender in a separate place - before hierarchy of routers
+        //  starts building. It is need to refactor this approach.
+        fun create(rootRender: BackstackRender): ElastikContext {
+            return ElastikContext(state = ElastikStateHolder()).apply {
+                addBackstackRender(
+                    backstackEntryId = ElastikStateHolder.ROOT_BACKSTACK_ENTRY_ID,
+                    render = rootRender,
+                )
+            }
         }
     }
 }

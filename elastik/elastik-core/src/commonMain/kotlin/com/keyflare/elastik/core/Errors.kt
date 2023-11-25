@@ -22,4 +22,10 @@ internal object Errors {
 
     fun parentRouterContextMismatch(destinationId: String) =
         "Parent router context mismatch for destination \"$destinationId\""
+
+    fun destinationBindingNotFound(destinationId: String, isSingle: Boolean) =
+        "Binding for ${if (isSingle) "single" else "backstack"} destination with ID $destinationId not found"
+
+    fun renderNotFound(backstackEntryId: Int) =
+        "Render for backstack entry with id $backstackEntryId not found"
 }

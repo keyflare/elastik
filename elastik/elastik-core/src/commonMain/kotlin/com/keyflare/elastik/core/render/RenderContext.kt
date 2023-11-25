@@ -1,64 +1,68 @@
 package com.keyflare.elastik.core.render
 
-import com.keyflare.elastik.core.routing.router.BaseRouter
+import com.keyflare.elastik.core.Errors
+import com.keyflare.elastik.core.state.Backstack
 import com.keyflare.elastik.core.state.ElastikStateHolder
+import com.keyflare.elastik.core.util.requireNotNull
+import kotlinx.coroutines.flow.StateFlow
 
 interface RenderContext {
+    val rootBackstack: StateFlow<Backstack>
 
-    fun <Component : Any> addSingleRenderBinding(
-        destinationId: String,
-        renderFactory: (Component) -> SingleRender,
+    fun addSingleRender(
+        backstackEntryId: Int,
+        render: SingleRender,
     )
 
-    fun <Router : BaseRouter> addBackstackRenderBinding(
-        destinationId: String,
-        renderFactory: (Router) -> BackstackRender,
+    fun addBackstackRender(
+        backstackEntryId: Int,
+        render: BackstackRender,
     )
+
+    fun removeSingleRender(backstackEntryId: Int)
+    fun removeBackstackRender(backstackEntryId: Int)
+    fun getSingleRender(backstackEntryId: Int): SingleRender
+    fun getBackstackRender(backstackEntryId: Int): BackstackRender
 }
 
 internal class RenderContextImpl(state: ElastikStateHolder) : RenderContext {
 
-    private val singleDestinationsRender =
-        mutableMapOf<String, SingleDestinationRenderBinding>()
+    private val singleRenders = mutableMapOf<Int, SingleRender>()
+    private val backstackRenders = mutableMapOf<Int, BackstackRender>()
 
-    private val backstackDestinationsRender =
-        mutableMapOf<String, BackstackDestinationRenderBinding>()
+    override val rootBackstack: StateFlow<Backstack> = state.state
 
-    override fun <Component : Any> addSingleRenderBinding(
-        destinationId: String,
-        renderFactory: (Component) -> SingleRender
+    override fun addSingleRender(
+        backstackEntryId: Int,
+        render: SingleRender,
     ) {
-        val renderFactoryImpl = { component: Any ->
-            @Suppress("UNCHECKED_CAST")
-            renderFactory(component as Component)
-        }
-        singleDestinationsRender[destinationId] = SingleDestinationRenderBinding(
-            destinationId = destinationId,
-            renderFactory = renderFactoryImpl,
-        )
+        singleRenders[backstackEntryId] = render
     }
 
-    override fun <Router : BaseRouter> addBackstackRenderBinding(
-        destinationId: String,
-        renderFactory: (Router) -> BackstackRender,
+    override fun addBackstackRender(
+        backstackEntryId: Int,
+        render: BackstackRender,
     ) {
-        val renderFactoryImpl = { router: BaseRouter ->
-            @Suppress("UNCHECKED_CAST")
-            renderFactory(router as Router)
-        }
-        backstackDestinationsRender[destinationId] = BackstackDestinationRenderBinding(
-            destinationId = destinationId,
-            renderFactory = renderFactoryImpl,
-        )
+        backstackRenders[backstackEntryId] = render
     }
 
-    private class SingleDestinationRenderBinding(
-        destinationId: String,
-        renderFactory: (Any) -> SingleRender
-    )
+    override fun removeSingleRender(backstackEntryId: Int) {
+        singleRenders.remove(backstackEntryId)
+    }
 
-    private class BackstackDestinationRenderBinding(
-        destinationId: String,
-        renderFactory: (BaseRouter) -> BackstackRender
-    )
+    override fun removeBackstackRender(backstackEntryId: Int) {
+        backstackRenders.remove(backstackEntryId)
+    }
+
+    override fun getSingleRender(backstackEntryId: Int): SingleRender {
+        return singleRenders[backstackEntryId].requireNotNull {
+            Errors.renderNotFound(backstackEntryId)
+        }
+    }
+
+    override fun getBackstackRender(backstackEntryId: Int): BackstackRender {
+        return backstackRenders[backstackEntryId].requireNotNull {
+            Errors.renderNotFound(backstackEntryId)
+        }
+    }
 }

@@ -73,8 +73,9 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
         renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<Args, Component> {
 
-        addSingleDestinationBinding(destinationId, componentFactory)
-        routingContext.sendSingleRenderBinding(destinationId, renderFactory)
+        @Suppress("UNCHECKED_CAST")
+        val renderFactoryImpl = { component: Any -> renderFactory(component as Component) }
+        addSingleDestinationBinding(destinationId, componentFactory, renderFactoryImpl)
 
         val addEntryTransformation = BackstackTransformation(
             backstackId = backstack.id,
@@ -122,8 +123,9 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
     ): StaticBackstackDestination<Args, Router> {
         // TODO check main thread
 
-        addBackstackDestinationBinding(destinationId, routerFactory)
-        routingContext.sendBackstackRenderBinding(destinationId, renderFactory)
+        @Suppress("UNCHECKED_CAST")
+        val renderFactoryImpl = { router: BaseRouter -> renderFactory(router as Router) }
+        addBackstackDestinationBinding(destinationId, routerFactory, renderFactoryImpl)
 
         val addEntryTransformation = BackstackTransformation(
             backstackId = backstack.id,

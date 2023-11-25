@@ -48,12 +48,15 @@ internal class ElastikStateHolder(initial: Backstack = initialState) {
     }
 
     companion object {
-        private const val ROOT_ID = -1
+        internal const val ROOT_BACKSTACK_ENTRY_ID = -1
+
+        // TODO maybe rename to something rare to minimise a chance
+        //  that some user's destination will conflict with this id.
         private const val ROOT_DESTINATION_ID = "root"
 
         @PublishedApi
         internal val initialState = Backstack(
-            id = ROOT_ID,
+            id = ROOT_BACKSTACK_ENTRY_ID,
             args = EmptyArguments,
             destinationId = ROOT_DESTINATION_ID,
             entries = emptyList(),
