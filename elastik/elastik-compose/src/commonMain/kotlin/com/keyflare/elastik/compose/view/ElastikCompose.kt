@@ -1,11 +1,14 @@
 package com.keyflare.elastik.compose.view
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import com.keyflare.elastik.compose.render.ComposeBackstackRender
 import com.keyflare.elastik.compose.render.ComposeSingleRender
 import com.keyflare.elastik.core.render.NoRender
@@ -19,12 +22,18 @@ fun ElastikCompose(context: RenderContext) {
         LocalRenderContext provides context,
     ) {
         val rootBackstackState = context.rootBackstack.collectAsState()
-        ElastikBinder(rootBackstackState)
+        ElastikBinder(
+            rootBackstackState,
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
 
 @Composable
-fun ElastikBinder(backstackEntry: State<BackstackEntry>) {
+fun ElastikBinder(
+    backstackEntry: State<BackstackEntry>,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalRenderContext.current
     // TODO Now this function makes an assumption that backstack entry it was called
     //  with is always the same (backstack entry id is never changed). So now remember
@@ -38,10 +47,17 @@ fun ElastikBinder(backstackEntry: State<BackstackEntry>) {
         val render = context.getBackstackRender(backstackEntryId)
         if (render is NoRender) return
         val entries = remember { derivedStateOf { (backstackEntry.value as Backstack).entries } }
-        (render as ComposeBackstackRender).container.composable(entries)
+        // TODO MVP solution. Think of replacing Box with something else
+        Box(modifier) {
+            render as ComposeBackstackRender
+            render.container.composable(entries)
+        }
     } else {
         val render = context.getSingleRender(backstackEntryId)
         if (render is NoRender) return
-        (render as ComposeSingleRender).content.composable()
+        Box(modifier) {
+            render as ComposeSingleRender
+            render.content.composable()
+        }
     }
 }

@@ -41,10 +41,12 @@ fun BasicReplaceEntryContainer(
         targetState = animationKey,
         contentAlignment = contentAlignment,
         transitionSpec = transitionSpec,
-        modifier = modifier,
         label = "ReplaceEntryContainer",
     ) { key ->
         val actualState = rememberUpdatedState(if (current.id == key) current else previous)
-        ElastikBinder(actualState)
+        ElastikBinder(
+            actualState,
+            modifier = modifier,
+        )
     }
 }

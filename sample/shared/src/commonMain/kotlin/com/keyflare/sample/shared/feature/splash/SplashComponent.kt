@@ -16,7 +16,7 @@ class SplashComponent(rootRouter: RootRouter) {
         // Temporary solution: use lifecycle scope after it will be implemented
         MainScope().launch {
             delay(2000)
-            rootRouter.navigateTo(rootRouter.mainScreen.destination)
+            rootRouter.navigateTo(rootRouter.mainTabs.destination)
         }
     }
 }

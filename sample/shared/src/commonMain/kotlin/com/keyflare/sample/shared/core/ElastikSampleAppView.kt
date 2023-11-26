@@ -1,4 +1,4 @@
-package com.keyflare.sample.shared.ui
+package com.keyflare.sample.shared.core
 
 import androidx.compose.runtime.Composable
 import com.keyflare.elastik.compose.view.ElastikCompose
