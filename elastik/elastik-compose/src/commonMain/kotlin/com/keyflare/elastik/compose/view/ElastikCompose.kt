@@ -7,6 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.keyflare.elastik.compose.render.ComposeBackstackRender
@@ -35,12 +36,9 @@ fun ElastikBinder(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalRenderContext.current
-    // TODO Now this function makes an assumption that backstack entry it was called
-    //  with is always the same (backstack entry id is never changed). So now remember
-    //  does not have a key. It is needed to add some kind of check for this assumption
-    //  or get rid of this assumption.
-    val isBackstack = remember { backstackEntry.value is Backstack }
-    val backstackEntryId = remember { backstackEntry.value.id }
+
+    val isBackstack by remember { derivedStateOf { backstackEntry.value is Backstack }  }
+    val backstackEntryId by remember { derivedStateOf { backstackEntry.value.id } }
 
     // TODO Get rid of calling ElastikBinder at all for NoRender entries
     if (isBackstack) {

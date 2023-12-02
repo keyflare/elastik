@@ -7,6 +7,6 @@ class TechComponent(
 ) {
 
     fun onBackClick() {
-        rootRouter.navigateBack()
+        rootRouter.onBack()
     }
 }

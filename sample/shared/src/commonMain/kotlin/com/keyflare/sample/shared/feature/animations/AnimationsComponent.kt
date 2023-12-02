@@ -7,6 +7,6 @@ class AnimationsComponent(
 ) {
 
     fun onBackClick() {
-        rootRouter.navigateBack()
+        rootRouter.onBack()
     }
 }

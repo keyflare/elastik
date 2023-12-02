@@ -1,7 +1,7 @@
 package com.keyflare.elastik.core.routing
 
 import com.keyflare.elastik.core.state.Arguments
-import com.keyflare.elastik.core.ElastikContext
+import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
@@ -124,12 +124,12 @@ internal class RoutersTreeTest {
                 val a = singleNoArgs(
                     destinationId = destinationId,
                     renderFactory = { NoRender },
-                    componentFactory = ::ComponentStub,
+                    componentFactory = { ComponentStub() },
                 )
                 val b = singleNoArgs(
                     destinationId = destinationId,
                     renderFactory = { NoRender },
-                    componentFactory = ::ComponentStub,
+                    componentFactory = { ComponentStub() },
                 )
             }
         }
@@ -139,13 +139,13 @@ internal class RoutersTreeTest {
                     destinationId = destinationId,
                     args = ArgsStub(),
                     renderFactory = { NoRender },
-                    componentFactory = ::ComponentStub,
+                    componentFactory = { ComponentStub() },
                 )
                 val b = single(
                     destinationId = destinationId,
                     args = ArgsStub(),
                     renderFactory = { NoRender },
-                    componentFactory = ::ComponentStub,
+                    componentFactory = { ComponentStub() },
                 )
             }
         }

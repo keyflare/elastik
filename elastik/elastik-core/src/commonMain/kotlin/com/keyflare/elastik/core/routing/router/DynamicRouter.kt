@@ -7,7 +7,7 @@ import com.keyflare.elastik.core.state.BackstackTransaction
 import com.keyflare.elastik.core.state.BackstackTransformation
 import com.keyflare.elastik.core.state.EmptyArguments
 import com.keyflare.elastik.core.state.SingleEntry
-import com.keyflare.elastik.core.ElastikContext
+import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.routing.tree.DynamicRouterTreeBuilder
 import com.keyflare.elastik.core.routing.tree.DynamicRouterTreeBuilderDelegate
 
@@ -19,8 +19,6 @@ interface TransactionManager {
         destination: Destination<Args>,
         args: Args,
     )
-
-    fun navigateBack()
 }
 
 abstract class DynamicRouter(context: ElastikContext) :
@@ -39,7 +37,7 @@ abstract class DynamicRouter(context: ElastikContext) :
         navigate { it + createBackstackEntry(destination, args) }
     }
 
-    override fun navigateBack() {
+    override fun onHandleBack() {
         navigate { it.dropLast(1) }
     }
 

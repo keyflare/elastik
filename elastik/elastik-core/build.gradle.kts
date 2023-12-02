@@ -31,6 +31,11 @@ kotlin {
 
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
+        val androidMain by getting {
+            dependencies {
+                implementation(libs.androidx.activity.ktx)
+            }
+        }
         val commonMain by getting {
             dependencies {
                 implementation(libs.coroutines)

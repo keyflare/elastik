@@ -7,6 +7,7 @@ compose = "1.5.4"
 compose-plugin = "1.5.3"
 compose-compiler = "1.5.3"
 kermit = "2.0.2"
+androidx-activity = "1.8.1"
 
 [libraries]
 
@@ -17,6 +18,8 @@ kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 compose-android-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-android-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-android-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidx-activity" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
 
 [plugins]
 

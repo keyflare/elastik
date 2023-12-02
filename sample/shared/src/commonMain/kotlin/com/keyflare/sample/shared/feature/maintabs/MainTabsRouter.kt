@@ -1,7 +1,7 @@
 package com.keyflare.sample.shared.feature.maintabs
 
 import com.keyflare.elastik.compose.render.ComposeSingleRender
-import com.keyflare.elastik.core.ElastikContext
+import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.routing.router.StaticRouter
 import com.keyflare.sample.shared.core.RootRouter
 import com.keyflare.sample.shared.feature.mainscreen.MainScreen

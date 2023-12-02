@@ -1,6 +1,6 @@
 package com.keyflare.elastik.core.routing.router
 
-import com.keyflare.elastik.core.ElastikContext
+import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.routing.tree.StaticRouterTreeBuilder
 import com.keyflare.elastik.core.routing.tree.StaticRouterTreeBuilderDelegate
 

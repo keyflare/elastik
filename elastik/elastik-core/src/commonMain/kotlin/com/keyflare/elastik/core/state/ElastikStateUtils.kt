@@ -1,5 +1,8 @@
 package com.keyflare.elastik.core.state
 
+import com.keyflare.elastik.core.Errors
+import com.keyflare.elastik.core.util.castOrError
+
 // TODO Make it more idiomatic (find/findOrNull)
 internal inline fun Backstack.find(predicate: (BackstackEntry) -> Boolean): BackstackEntry? {
     var step: List<BackstackEntry> = listOf(this)
@@ -53,7 +56,21 @@ internal fun Backstack.transform(
 }
 
 internal inline fun ElastikStateHolder.backstack(id: Int): Backstack? =
-    state.value.find { it.id == id } as? Backstack
+    state.value
+        .find { it.id == id }
+        ?.castOrError<Backstack> {
+            Errors.backstackEntryUnexpectedType(
+                backstackEntryId = id,
+                backstackExpected = true,
+            )
+        }
 
 internal inline fun ElastikStateHolder.single(id: Int): SingleEntry? =
-    state.value.find { it.id == id } as? SingleEntry
+    state.value
+        .find { it.id == id }
+        ?.castOrError<SingleEntry> {
+            Errors.backstackEntryUnexpectedType(
+                backstackEntryId = id,
+                backstackExpected = false,
+            )
+        }

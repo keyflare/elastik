@@ -1,7 +1,7 @@
 package com.keyflare.elastik.core.routing
 
 import com.keyflare.elastik.core.state.Arguments
-import com.keyflare.elastik.core.ElastikContext
+import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.DynamicRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter

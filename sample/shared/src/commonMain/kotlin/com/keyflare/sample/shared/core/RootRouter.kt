@@ -3,7 +3,7 @@ package com.keyflare.sample.shared.core
 import co.touchlab.kermit.Logger
 import com.keyflare.elastik.compose.render.ComposeBackstackRender
 import com.keyflare.elastik.compose.render.ComposeSingleRender
-import com.keyflare.elastik.core.ElastikContext
+import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.routing.router.DynamicRouter
 import com.keyflare.sample.shared.feature.animations.AnimationsComponent
 import com.keyflare.sample.shared.feature.animations.AnimationsScreen

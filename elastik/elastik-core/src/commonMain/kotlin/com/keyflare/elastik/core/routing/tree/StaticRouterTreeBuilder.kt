@@ -7,10 +7,11 @@ import com.keyflare.elastik.core.state.BackstackTransformation
 import com.keyflare.elastik.core.state.EmptyArguments
 import com.keyflare.elastik.core.state.SingleEntry
 import com.keyflare.elastik.core.state.find
-import com.keyflare.elastik.core.ElastikContext
+import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.render.BackstackRender
 import com.keyflare.elastik.core.render.SingleRender
+import com.keyflare.elastik.core.routing.router.BackHandler
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.Destination
 import com.keyflare.elastik.core.util.requireNotNull
@@ -31,14 +32,14 @@ interface StaticRouterTreeBuilder {
 
     fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        componentFactory: () -> Component,
+        componentFactory: (BackHandler) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<EmptyArguments, Component>
 
     fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
         args: Args,
-        componentFactory: () -> Component,
+        componentFactory: (BackHandler) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<Args, Component>
 
@@ -60,7 +61,7 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
 
     override fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        componentFactory: () -> Component,
+        componentFactory: (BackHandler) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<EmptyArguments, Component> {
         return single(destinationId, EmptyArguments, componentFactory, renderFactory)
@@ -69,7 +70,7 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
     override fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
         args: Args,
-        componentFactory: () -> Component,
+        componentFactory: (BackHandler) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<Args, Component> {
 
@@ -78,7 +79,7 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
         addSingleDestinationBinding(destinationId, componentFactory, renderFactoryImpl)
 
         val addEntryTransformation = BackstackTransformation(
-            backstackId = backstack.id,
+            backstackId = backstack?.id ?: error(Errors.noBackstackAssociated(backstackEntryId)),
             transformation = { entries ->
                 val newEntry = SingleEntry(
                     id = routingContext.obtainIdForNewBackstackEntry(),
@@ -128,7 +129,7 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
         addBackstackDestinationBinding(destinationId, routerFactory, renderFactoryImpl)
 
         val addEntryTransformation = BackstackTransformation(
-            backstackId = backstack.id,
+            backstackId = backstack?.id ?: error(Errors.noBackstackAssociated(backstackEntryId)),
             transformation = { entries ->
                 val newEntry = Backstack(
                     id = routingContext.obtainIdForNewBackstackEntry(),

@@ -1,6 +1,6 @@
 package com.keyflare.elastik.core.routing
 
-import com.keyflare.elastik.core.ElastikContext
+import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
@@ -12,8 +12,8 @@ import kotlin.test.assertTrue
 
 internal class RoutingContextTest {
 
-    private var context: RoutingContext = ElastikContext.create(NoRender)
-    private var routerStub: BaseRouter = object : StaticRouter(context as ElastikContext) {}
+    private var context: ElastikContext = ElastikContext.create(NoRender)
+    private var routerStub: BaseRouter = object : StaticRouter(context) {}
 
     @BeforeTest
     fun beforeEach() {
@@ -25,7 +25,7 @@ internal class RoutingContextTest {
     @Test
     fun `Unique backstack entry id calculation test`() {
         (0 until 100)
-            .map { context.obtainIdForNewBackstackEntry() }
+            .map { context.routingContext.obtainIdForNewBackstackEntry() }
             .toSet()
             .let { ids ->
                 assertEquals(
@@ -39,7 +39,7 @@ internal class RoutingContextTest {
     @Test
     fun `Providing data for a new router test`() {
         (0 until 100).map { iteration ->
-            context.rememberDataForNewRouter(
+            context.routingContext.rememberDataForNewRouter(
                 destinationId = iteration.toString(),
                 backstackEntryId = iteration,
                 parent = routerStub,
@@ -50,7 +50,7 @@ internal class RoutingContextTest {
                     backstackEntryId = iteration,
                     parent = routerStub,
                 ),
-                actual = context.getNewRouterData(),
+                actual = context.routingContext.getNewRouterData(),
                 message = "Invalid data prepared for the new router (check iteration #$iteration)"
             )
         }
@@ -64,7 +64,7 @@ internal class RoutingContextTest {
             .apply { set(32, 17) } // not unique id on 32 index
             .apply { set(95, 50) } // not unique id on 95 index
             .map { it.toString() }
-            .map { context.isDestinationAlreadyExist(it) }
+            .map { context.routingContext.isDestinationAlreadyExist(it) }
             .forEachIndexed { index, exists ->
                 if (index in listOf(32, 45, 95)) {
                     assertTrue { exists }

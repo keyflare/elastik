@@ -7,7 +7,7 @@ import com.keyflare.elastik.core.state.ElastikStateHolder
 import com.keyflare.elastik.core.state.SingleEntry
 import com.keyflare.elastik.core.state.backstack
 import com.keyflare.elastik.core.state.find
-import com.keyflare.elastik.core.ElastikContext
+import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.render.BackstackRender
 import com.keyflare.elastik.core.render.SingleRender
@@ -24,36 +24,91 @@ sealed class BaseRouter(context: ElastikContext) {
     private val childSingleEntriesData = mutableMapOf<Int, BackstackEntryData.SingleEntryData>()
     private val childBackstacksData = mutableMapOf<Int, BackstackEntryData.BackstackData>()
     private var lastSyncEntries: List<BackstackEntryWrapper> = emptyList()
+    private val elastikContext: ElastikContext
 
     internal val state: ElastikStateHolder
     internal val routingContext: RoutingContext
 
-    // TODO refactor: handle whole BackstackEntry entity, not ids, and validate it not a single
     val destinationId: String
 
     val backstackEntryId: Int
 
     val parent: BaseRouter?
 
-    val backstack
-        get() = state.backstack(backstackEntryId)
-            ?: error(Errors.noBackstackAssociated(backstackEntryId))
+    val backstack: Backstack? get() = state.backstack(backstackEntryId)
 
     init {
-        routingContext = context
+        elastikContext = context
+        routingContext = elastikContext.routingContext
         state = routingContext.state
         val data = routingContext.getNewRouterData()
         destinationId = data.destinationId
         backstackEntryId = data.backstackEntryId
         parent = data.parent
 
+        setupAsRootIfAppropriate()
         validateData()
         syncState()
     }
 
+    fun onBack() {
+        routingContext.backEventsDispatcher.dispatch()
+    }
+
+    protected open fun onHandleBack() {
+        // Do nothing by default
+    }
+
+    protected open fun onInterceptBack(): Boolean {
+        return false
+    }
+
+    private fun handleBack(): Boolean {
+        // The back event has been intercepted from children
+        if (onInterceptBack()) {
+            return true
+        }
+
+        val entries = backstack?.entries ?: return false
+
+        // The back event need to be handled by parent
+        if (entries.size <= 1) {
+            return false
+        }
+
+        val handledByChild = when (val topEntry = entries.lastOrNull()) {
+            null -> false
+
+            is SingleEntry -> {
+                childSingleEntriesData[topEntry.id]
+                    .requireNotNull { Errors.entryNotFound(topEntry.id) }
+                    .backDispatcher
+                    .dispatchBackEvent()
+            }
+
+            is Backstack -> {
+                childBackstacksData[topEntry.id]
+                    .requireNotNull { Errors.entryNotFound(topEntry.id) }
+                    .router
+                    .handleBack()
+            }
+        }
+
+        // A child has handled back event, so we don't need to do anything here
+        if (handledByChild) {
+            return true
+        }
+
+        // The event has not been handled by children, therefore,
+        // this router must handle it by itself
+        onHandleBack()
+
+        return true
+    }
+
     internal fun addSingleDestinationBinding(
         destinationId: String,
-        componentFactory: (() -> Any),
+        componentFactory: ((BackHandler) -> Any),
         renderFactory: ((Any) -> SingleRender),
     ) {
         require(!routingContext.isDestinationAlreadyExist(destinationId)) {
@@ -83,20 +138,24 @@ sealed class BaseRouter(context: ElastikContext) {
         // TODO MVP Solution!!! Refactor this
         //  (optimize and get rid of the third party diff solution)
         state.subscribeBlocking { root ->
+            val newEntries = root.extractAssociatedEntries() ?: return@subscribeBlocking
             val oldEntries = lastSyncEntries
-            val newEntries = root.extractAssociatedEntries()
             lastSyncEntries = newEntries
 
             applyStateDiff(oldEntries, newEntries)
         }
     }
 
-    private fun Backstack.extractAssociatedEntries(): List<BackstackEntryWrapper> {
+    private fun Backstack.extractAssociatedEntries(): List<BackstackEntryWrapper>? {
         return find { it.id == backstackEntryId }
-            .requireNotNull { Errors.noBackstackAssociated(backstackEntryId) }
-            .castOrError<Backstack>(Errors.backstackEntryUnexpectedType(backstackEntryId, true))
-            .entries
-            .map {
+            ?.castOrError<Backstack> {
+                Errors.backstackEntryUnexpectedType(
+                    backstackEntryId = backstackEntryId,
+                    backstackExpected = true
+                )
+            }
+            ?.entries
+            ?.map {
                 // Ignore entries inside child backstack when comparing
                 BackstackEntryWrapper(
                     backstackEntryId = it.id,
@@ -114,85 +173,87 @@ sealed class BaseRouter(context: ElastikContext) {
         differenceOf(
             original = oldEntries,
             updated = newEntries,
-            detectMoves = true,
+            detectMoves = false,
         ).applyDiff(
             remove = { index ->
-                // TODO onDestroy callback
                 when (val entryToRemove = oldEntries[index].entry) {
-                    is SingleEntry -> {
-                        childSingleEntriesData.remove(entryToRemove.id)
-                        routingContext.onSingleDestroyed(entryToRemove.id)
-                    }
-
-                    is Backstack -> {
-                        childBackstacksData.remove(entryToRemove.id)
-                        routingContext.onBackstackDestroyed(entryToRemove.id)
-                    }
+                    is SingleEntry -> onRemoveSingleEntry(entryToRemove.id)
+                    is Backstack -> onRemoveBackstackEntry(entryToRemove.id)
                 }
             },
             insert = { entryWrapper, _ ->
-                when (entryWrapper.entry) {
-                    is SingleEntry -> {
-
-                        @Suppress("ReplaceGetOrSet")
-                        val destinationBinding = singleDestinationBindings
-                            .get(entryWrapper.destinationId)
-                            .requireNotNull {
-                                Errors.destinationBindingNotFound(
-                                    destinationId = entryWrapper.destinationId,
-                                    isSingle = true,
-                                )
-                            }
-                        val component = destinationBinding.componentFactory()
-
-                        childSingleEntriesData[entryWrapper.backstackEntryId] =
-                            BackstackEntryData.SingleEntryData(
-                                backstackEntry = entryWrapper.entry,
-                                component = component,
-                            )
-
-                        routingContext.sendSingleRender(
-                            backstackEntryId = entryWrapper.entry.id,
-                            render = destinationBinding.renderFactory(component),
-                        )
-                    }
-
-                    is Backstack -> {
-
-                        @Suppress("ReplaceGetOrSet")
-                        val destinationBinding = backstackDestinationBindings
-                            .get(entryWrapper.destinationId)
-                            .requireNotNull {
-                                Errors.destinationBindingNotFound(
-                                    destinationId = entryWrapper.destinationId,
-                                    isSingle = false,
-                                )
-                            }
-
-                        routingContext.rememberDataForNewRouter(
-                            destinationId = entryWrapper.entry.destinationId,
-                            backstackEntryId = entryWrapper.entry.id,
-                            parent = this,
-                        )
-                        val router = destinationBinding
-                            .routerFactory(routingContext as ElastikContext)
-                        routingContext.clearNewRouterData()
-
-                        childBackstacksData[entryWrapper.backstackEntryId] =
-                            BackstackEntryData.BackstackData(
-                                backstackEntry = entryWrapper.entry,
-                                router = router,
-                            )
-
-                        routingContext.sendBackstackRender(
-                            backstackEntryId = entryWrapper.entry.id,
-                            render = destinationBinding.renderFactory(router)
-                        )
-                    }
+                when (val entryToInsert = entryWrapper.entry) {
+                    is SingleEntry -> onInsertSingleEntry(entryToInsert)
+                    is Backstack -> onInsertBackstackEntry(entryToInsert)
                 }
             },
             move = { _, _ -> }
         )
+    }
+
+    private fun onInsertSingleEntry(entry: SingleEntry) {
+        @Suppress("ReplaceGetOrSet")
+        val destinationBinding = singleDestinationBindings
+            .get(entry.destinationId)
+            .requireNotNull {
+                Errors.destinationBindingNotFound(
+                    destinationId = entry.destinationId,
+                    isSingle = true,
+                )
+            }
+        val backController = BackControllerImpl()
+        val component = destinationBinding.componentFactory(backController)
+
+        childSingleEntriesData[entry.id] = BackstackEntryData.SingleEntryData(
+            backstackEntry = entry,
+            backDispatcher = backController,
+            component = component,
+        )
+
+        routingContext.sendSingleRender(
+            backstackEntryId = entry.id,
+            render = destinationBinding.renderFactory(component),
+        )
+    }
+
+    private fun onInsertBackstackEntry(entry: Backstack) {
+        @Suppress("ReplaceGetOrSet")
+        val destinationBinding = backstackDestinationBindings
+            .get(entry.destinationId)
+            .requireNotNull {
+                Errors.destinationBindingNotFound(
+                    destinationId = entry.destinationId,
+                    isSingle = false,
+                )
+            }
+
+        routingContext.rememberDataForNewRouter(
+            destinationId = entry.destinationId,
+            backstackEntryId = entry.id,
+            parent = this,
+        )
+        val router = destinationBinding.routerFactory(elastikContext)
+        routingContext.clearNewRouterData()
+
+        childBackstacksData[entry.id] = BackstackEntryData.BackstackData(
+            backstackEntry = entry,
+            router = router,
+        )
+
+        routingContext.sendBackstackRender(
+            backstackEntryId = entry.id,
+            render = destinationBinding.renderFactory(router)
+        )
+    }
+
+    private fun onRemoveSingleEntry(backstackEntryId: Int) {
+        childSingleEntriesData.remove(backstackEntryId)
+        routingContext.onSingleDestroyed(backstackEntryId)
+    }
+
+    private fun onRemoveBackstackEntry(backstackEntryId: Int) {
+        childBackstacksData.remove(backstackEntryId)
+        routingContext.onBackstackDestroyed(backstackEntryId)
     }
 
     internal fun findComponentOrNull(backstackEntryId: Int): Any? {
@@ -211,11 +272,20 @@ sealed class BaseRouter(context: ElastikContext) {
         }
     }
 
+    private fun setupAsRootIfAppropriate() {
+        if (parent != null) return
+
+        routingContext
+            .backEventsDispatcher
+            .subscribe(::handleBack)
+    }
+
     private sealed interface BackstackEntryData {
         val backstackEntry: BackstackEntry
 
         class SingleEntryData(
             override val backstackEntry: SingleEntry,
+            val backDispatcher: BackDispatcher,
             val component: Any,
         ) : BackstackEntryData
 
@@ -226,7 +296,7 @@ sealed class BaseRouter(context: ElastikContext) {
     }
 
     private class SingleDestinationBinding(
-        val componentFactory: () -> Any,
+        val componentFactory: (BackHandler) -> Any,
         val renderFactory: (Any) -> SingleRender,
     )
 

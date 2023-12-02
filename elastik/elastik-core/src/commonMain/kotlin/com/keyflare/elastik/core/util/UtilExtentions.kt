@@ -8,8 +8,8 @@ internal inline fun <reified T> Any.cast(): T =
 internal inline fun <reified T> Any?.castOrNull(): T? =
     this as? T
 
-internal inline fun <reified T> Any?.castOrError(message: String): T =
-    this as? T ?: error(message)
+internal inline fun <reified T> Any?.castOrError(lazyMessage: (() -> String)): T =
+    this as? T ?: error(lazyMessage())
 
 internal inline fun <reified T> T?.requireNotNull(): T =
     requireNotNull(this)

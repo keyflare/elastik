@@ -6,6 +6,6 @@ class ContainersComponent(
     private val rootRouter: RootRouter,
 ) {
     fun onBackClick() {
-        rootRouter.navigateBack()
+        rootRouter.onBack()
     }
 }

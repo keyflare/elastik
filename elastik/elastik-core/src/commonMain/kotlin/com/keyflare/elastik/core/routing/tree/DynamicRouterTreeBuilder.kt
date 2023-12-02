@@ -5,10 +5,11 @@ import com.keyflare.elastik.core.state.EmptyArguments
 import com.keyflare.elastik.core.state.find
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.Destination
-import com.keyflare.elastik.core.ElastikContext
+import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.render.BackstackRender
 import com.keyflare.elastik.core.render.SingleRender
+import com.keyflare.elastik.core.routing.router.BackHandler
 
 abstract class DynamicBackstackDestination<Args : Arguments, Router : BaseRouter>(
     val destination: Destination<Args>,
@@ -28,13 +29,13 @@ interface DynamicRouterTreeBuilder {
 
     fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        componentFactory: () -> Component,
+        componentFactory: (BackHandler) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<EmptyArguments, Component>
 
     fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
-        componentFactory: () -> Component,
+        componentFactory: (BackHandler) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<Args, Component>
 
@@ -55,7 +56,7 @@ internal class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
 
     override fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        componentFactory: () -> Component,
+        componentFactory: (BackHandler) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<EmptyArguments, Component> {
         return single(destinationId, componentFactory, renderFactory)
@@ -63,7 +64,7 @@ internal class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
 
     override fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
-        componentFactory: () -> Component,
+        componentFactory: (BackHandler) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<Args, Component> {
 
