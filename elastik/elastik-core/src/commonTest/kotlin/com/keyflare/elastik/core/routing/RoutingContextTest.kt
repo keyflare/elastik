@@ -23,9 +23,9 @@ internal class RoutingContextTest {
     }
 
     @Test
-    fun `Unique backstack entry id calculation test`() {
+    fun `Unique entry id calculation test`() {
         (0 until 100)
-            .map { context.routingContext.obtainIdForNewBackstackEntry() }
+            .map { context.routingContext.obtainNewEntryId() }
             .toSet()
             .let { ids ->
                 assertEquals(
@@ -39,15 +39,15 @@ internal class RoutingContextTest {
     @Test
     fun `Providing data for a new router test`() {
         (0 until 100).map { iteration ->
-            context.routingContext.rememberDataForNewRouter(
+            context.routingContext.rememberNewRouterData(
                 destinationId = iteration.toString(),
-                backstackEntryId = iteration,
+                entryId = iteration,
                 parent = routerStub,
             )
             assertEquals(
                 expected = NewRouterData(
                     destinationId = iteration.toString(),
-                    backstackEntryId = iteration,
+                    entryId = iteration,
                     parent = routerStub,
                 ),
                 actual = context.routingContext.getNewRouterData(),

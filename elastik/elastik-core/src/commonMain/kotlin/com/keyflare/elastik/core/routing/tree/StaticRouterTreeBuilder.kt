@@ -1,22 +1,22 @@
 package com.keyflare.elastik.core.routing.tree
 
 import com.keyflare.elastik.core.state.Arguments
-import com.keyflare.elastik.core.state.Backstack
-import com.keyflare.elastik.core.state.BackstackTransaction
-import com.keyflare.elastik.core.state.BackstackTransformation
+import com.keyflare.elastik.core.state.Stack
+import com.keyflare.elastik.core.state.StackTransaction
+import com.keyflare.elastik.core.state.StackTransformation
 import com.keyflare.elastik.core.state.EmptyArguments
-import com.keyflare.elastik.core.state.SingleEntry
+import com.keyflare.elastik.core.state.Single
 import com.keyflare.elastik.core.state.find
 import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.Errors
-import com.keyflare.elastik.core.render.BackstackRender
+import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
 import com.keyflare.elastik.core.routing.router.BackHandler
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.Destination
 import com.keyflare.elastik.core.util.requireNotNull
 
-abstract class StaticBackstackDestination<Args : Arguments, Router : BaseRouter>(
+abstract class StaticStackDestination<Args : Arguments, Router : BaseRouter>(
     val destination: Destination<Args>,
 ) {
     abstract val router: Router
@@ -43,18 +43,18 @@ interface StaticRouterTreeBuilder {
         renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<Args, Component>
 
-    fun <Router : BaseRouter> BaseRouter.backstackNoArgs(
+    fun <Router : BaseRouter> BaseRouter.stackNoArgs(
         destinationId: String,
         routerFactory: (ElastikContext) -> Router,
-        renderFactory: (Router) -> BackstackRender,
-    ): StaticBackstackDestination<EmptyArguments, Router>
+        renderFactory: (Router) -> StackRender,
+    ): StaticStackDestination<EmptyArguments, Router>
 
-    fun <Args : Arguments, Router : BaseRouter> BaseRouter.backstack(
+    fun <Args : Arguments, Router : BaseRouter> BaseRouter.stack(
         destinationId: String,
         args: Args,
         routerFactory: (ElastikContext) -> Router,
-        renderFactory: (Router) -> BackstackRender,
-    ): StaticBackstackDestination<Args, Router>
+        renderFactory: (Router) -> StackRender,
+    ): StaticStackDestination<Args, Router>
 }
 
 internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
@@ -78,21 +78,21 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
         val renderFactoryImpl = { component: Any -> renderFactory(component as Component) }
         addSingleDestinationBinding(destinationId, componentFactory, renderFactoryImpl)
 
-        val addEntryTransformation = BackstackTransformation(
-            backstackId = backstack?.id ?: error(Errors.noBackstackAssociated(backstackEntryId)),
+        val addEntryTransformation = StackTransformation(
+            entryId = stack?.entryId ?: error(Errors.noStackAssociated(entryId)),
             transformation = { entries ->
-                val newEntry = SingleEntry(
-                    id = routingContext.obtainIdForNewBackstackEntry(),
+                val newEntry = Single(
+                    entryId = routingContext.obtainNewEntryId(),
                     args = args,
                     destinationId = destinationId,
                 )
                 entries + newEntry
             },
         )
-        state.pushTransaction(BackstackTransaction(listOf(addEntryTransformation)))
+        state.pushTransaction(StackTransaction(listOf(addEntryTransformation)))
 
         return object : StaticSingleDestination<Args, Component>(
-            destination = Destination(id = destinationId, isSingle = true),
+            destination = Destination(destinationId = destinationId, single = true),
         ) {
             override val component: Component by lazy {
                 @Suppress("UNCHECKED_CAST")
@@ -100,7 +100,7 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
                     .find { it.destinationId == destinationId }
                     .requireNotNull()
                     .let {
-                        val component = findComponentOrNull(it.id)
+                        val component = findComponentOrNull(it.entryId)
                             ?: error(Errors.componentNotFound(it.destinationId))
                         component as Component
                     }
@@ -108,31 +108,31 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
         }
     }
 
-    override fun <Router : BaseRouter> BaseRouter.backstackNoArgs(
+    override fun <Router : BaseRouter> BaseRouter.stackNoArgs(
         destinationId: String,
         routerFactory: (ElastikContext) -> Router,
-        renderFactory: (Router) -> BackstackRender,
-    ): StaticBackstackDestination<EmptyArguments, Router> {
-        return backstack(destinationId, EmptyArguments, routerFactory, renderFactory)
+        renderFactory: (Router) -> StackRender,
+    ): StaticStackDestination<EmptyArguments, Router> {
+        return stack(destinationId, EmptyArguments, routerFactory, renderFactory)
     }
 
-    override fun <Args : Arguments, Router : BaseRouter> BaseRouter.backstack(
+    override fun <Args : Arguments, Router : BaseRouter> BaseRouter.stack(
         destinationId: String,
         args: Args,
         routerFactory: (ElastikContext) -> Router,
-        renderFactory: (Router) -> BackstackRender,
-    ): StaticBackstackDestination<Args, Router> {
+        renderFactory: (Router) -> StackRender,
+    ): StaticStackDestination<Args, Router> {
         // TODO check main thread
 
         @Suppress("UNCHECKED_CAST")
         val renderFactoryImpl = { router: BaseRouter -> renderFactory(router as Router) }
-        addBackstackDestinationBinding(destinationId, routerFactory, renderFactoryImpl)
+        addStackDestinationBinding(destinationId, routerFactory, renderFactoryImpl)
 
-        val addEntryTransformation = BackstackTransformation(
-            backstackId = backstack?.id ?: error(Errors.noBackstackAssociated(backstackEntryId)),
+        val addEntryTransformation = StackTransformation(
+            entryId = stack?.entryId ?: error(Errors.noStackAssociated(entryId)),
             transformation = { entries ->
-                val newEntry = Backstack(
-                    id = routingContext.obtainIdForNewBackstackEntry(),
+                val newEntry = Stack(
+                    entryId = routingContext.obtainNewEntryId(),
                     args = args,
                     destinationId = destinationId,
                     entries = emptyList(),
@@ -141,11 +141,11 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
             },
         )
 
-        state.pushTransaction(BackstackTransaction(listOf(addEntryTransformation)))
+        state.pushTransaction(StackTransaction(listOf(addEntryTransformation)))
 
         // TODO MVP Solution!!! Refactor this approach
-        return object : StaticBackstackDestination<Args, Router>(
-            destination = Destination(id = destinationId, isSingle = false),
+        return object : StaticStackDestination<Args, Router>(
+            destination = Destination(destinationId = destinationId, single = false),
         ) {
             override val router: Router by lazy {
                 @Suppress("UNCHECKED_CAST")
@@ -153,7 +153,7 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
                     .find { it.destinationId == destinationId }
                     .requireNotNull()
                     .let {
-                        val router = findRouterOrNull(it.id)
+                        val router = findRouterOrNull(it.entryId)
                             ?: error(Errors.routerNotFound(it.destinationId))
                         router as Router
                     }

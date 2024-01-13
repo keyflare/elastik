@@ -7,7 +7,7 @@ interface SingleRender {
     interface Content
 }
 
-interface BackstackRender {
+interface StackRender {
     val container: Container
     val transition: Transition?
     val defaultChildrenTransition: Transition?
@@ -15,14 +15,14 @@ interface BackstackRender {
     interface Container
 }
 
-object NoRender : SingleRender, BackstackRender {
+object NoRender : SingleRender, StackRender {
     override val content: SingleRender.Content = ContentStub
-    override val container: BackstackRender.Container = ContainerStub
+    override val container: StackRender.Container = ContainerStub
     override val transition: Transition? = null
     override val defaultChildrenTransition: Transition? = null
 
     private object ContentStub : SingleRender.Content
-    private object ContainerStub : BackstackRender.Container
+    private object ContainerStub : StackRender.Container
 }
 
 interface Transition

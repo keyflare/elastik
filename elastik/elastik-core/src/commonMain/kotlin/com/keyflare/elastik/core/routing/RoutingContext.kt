@@ -2,7 +2,7 @@ package com.keyflare.elastik.core.routing
 
 import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.context.ElastikPlatform
-import com.keyflare.elastik.core.render.BackstackRender
+import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
 import com.keyflare.elastik.core.routing.backevents.BackEventsDispatcher
 import com.keyflare.elastik.core.routing.router.BaseRouter
@@ -12,6 +12,7 @@ import com.keyflare.elastik.core.state.ElastikStateHolder
 internal interface RoutingContext {
 
     val state: ElastikStateHolder
+
     val backEventsDispatcher: BackEventsDispatcher
 
     fun registerRenderReceiver(receiver: RenderReceiver)
@@ -20,25 +21,25 @@ internal interface RoutingContext {
 
     fun detachPlatform()
 
-    fun obtainIdForNewBackstackEntry(): Int
+    fun obtainNewEntryId(): Int
 
     fun sendSingleRender(
-        backstackEntryId: Int,
+        entryId: Int,
         render: SingleRender,
     )
 
-    fun sendBackstackRender(
-        backstackEntryId: Int,
-        render: BackstackRender,
+    fun sendStackRender(
+        entryId: Int,
+        render: StackRender,
     )
 
-    fun onSingleDestroyed(backstackEntryId: Int)
+    fun onSingleDestroyed(entryId: Int)
 
-    fun onBackstackDestroyed(backstackEntryId: Int)
+    fun onStackDestroyed(entryId: Int)
 
-    fun rememberDataForNewRouter(
+    fun rememberNewRouterData(
         destinationId: String,
-        backstackEntryId: Int,
+        entryId: Int,
         parent: BaseRouter,
     )
 
@@ -46,6 +47,7 @@ internal interface RoutingContext {
 
     fun clearNewRouterData()
 
+    // TODO refactor this approach
     fun isDestinationAlreadyExist(destinationId: String): Boolean
 
     fun dispatchBackEvent()
@@ -53,18 +55,18 @@ internal interface RoutingContext {
     interface RenderReceiver {
 
         fun receiveSingleRender(
-            backstackEntryId: Int,
+            entryId: Int,
             render: SingleRender,
         )
 
-        fun receiveBackstackRender(
-            backstackEntryId: Int,
-            render: BackstackRender,
+        fun receiveStackRender(
+            entryId: Int,
+            render: StackRender,
         )
 
-        fun onSingleEntryDestroyed(backstackEntryId: Int)
+        fun onSingleEntryDestroyed(entryId: Int)
 
-        fun onBackstackDestroyed(backstackEntryId: Int)
+        fun onStackDestroyed(entryId: Int)
     }
 }
 
@@ -72,7 +74,7 @@ internal class RoutingContextImpl(
     override val state: ElastikStateHolder,
 ) : RoutingContext {
 
-    private var backstackEntryIdIncrement = 0
+    private var entryIdIncrement = 0
         get() = field++
 
     private var dataForNewRouter: NewRouterData? = ROOT_ROUTER_DATA
@@ -97,41 +99,41 @@ internal class RoutingContextImpl(
 
     }
 
-    override fun obtainIdForNewBackstackEntry(): Int {
+    override fun obtainNewEntryId(): Int {
         // TODO checkMainThread()
-        return backstackEntryIdIncrement
+        return entryIdIncrement
     }
 
     override fun sendSingleRender(
-        backstackEntryId: Int,
+        entryId: Int,
         render: SingleRender,
     ) {
-        renderReceiver?.receiveSingleRender(backstackEntryId, render)
+        renderReceiver?.receiveSingleRender(entryId, render)
     }
 
-    override fun sendBackstackRender(
-        backstackEntryId: Int,
-        render: BackstackRender,
+    override fun sendStackRender(
+        entryId: Int,
+        render: StackRender,
     ) {
-        renderReceiver?.receiveBackstackRender(backstackEntryId, render)
+        renderReceiver?.receiveStackRender(entryId, render)
     }
 
-    override fun onSingleDestroyed(backstackEntryId: Int) {
-        renderReceiver?.onSingleEntryDestroyed(backstackEntryId)
+    override fun onSingleDestroyed(entryId: Int) {
+        renderReceiver?.onSingleEntryDestroyed(entryId)
     }
 
-    override fun onBackstackDestroyed(backstackEntryId: Int) {
-        renderReceiver?.onBackstackDestroyed(backstackEntryId)
+    override fun onStackDestroyed(entryId: Int) {
+        renderReceiver?.onStackDestroyed(entryId)
     }
 
-    override fun rememberDataForNewRouter(
+    override fun rememberNewRouterData(
         destinationId: String,
-        backstackEntryId: Int,
+        entryId: Int,
         parent: BaseRouter,
     ) {
         dataForNewRouter = NewRouterData(
             destinationId = destinationId,
-            backstackEntryId = backstackEntryId,
+            entryId = entryId,
             parent = parent,
         )
     }
@@ -155,12 +157,12 @@ internal class RoutingContextImpl(
 
 internal data class NewRouterData(
     val destinationId: String,
-    val backstackEntryId: Int,
+    val entryId: Int,
     val parent: BaseRouter?,
 )
 
 internal val ROOT_ROUTER_DATA = NewRouterData(
     destinationId = "root",
-    backstackEntryId = -1,
+    entryId = -1,
     parent = null,
 )

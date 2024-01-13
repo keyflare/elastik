@@ -1,23 +1,23 @@
 package com.keyflare.elastik.core.state
 
-sealed interface BackstackEntry {
-    val id: Int
+sealed interface Entry {
+    val entryId: Int
     val args: Arguments
     val destinationId: String
 }
 
-data class SingleEntry(
-    override val id: Int,
+data class Single(
+    override val entryId: Int,
     override val args: Arguments,
     override val destinationId: String,
-) : BackstackEntry
+) : Entry
 
-data class Backstack(
-    override val id: Int,
+data class Stack(
+    override val entryId: Int,
     override val args: Arguments,
     override val destinationId: String,
-    val entries: List<BackstackEntry>,
-) : BackstackEntry
+    val entries: List<Entry>,
+) : Entry
 
 interface Arguments
 

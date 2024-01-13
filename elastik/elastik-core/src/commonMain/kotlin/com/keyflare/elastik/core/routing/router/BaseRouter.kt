@@ -1,15 +1,15 @@
 package com.keyflare.elastik.core.routing.router
 
 import com.keyflare.elastik.core.state.Arguments
-import com.keyflare.elastik.core.state.Backstack
-import com.keyflare.elastik.core.state.BackstackEntry
+import com.keyflare.elastik.core.state.Stack
+import com.keyflare.elastik.core.state.Entry
 import com.keyflare.elastik.core.state.ElastikStateHolder
-import com.keyflare.elastik.core.state.SingleEntry
-import com.keyflare.elastik.core.state.backstack
+import com.keyflare.elastik.core.state.Single
+import com.keyflare.elastik.core.state.stack
 import com.keyflare.elastik.core.state.find
 import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.Errors
-import com.keyflare.elastik.core.render.BackstackRender
+import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
 import com.keyflare.elastik.core.routing.RoutingContext
 import com.keyflare.elastik.core.util.castOrError
@@ -20,10 +20,10 @@ import com.keyflare.elastik.core.routing.diff.differenceOf
 sealed class BaseRouter(context: ElastikContext) {
 
     private val singleDestinationBindings = mutableMapOf<String, SingleDestinationBinding>()
-    private val backstackDestinationBindings = mutableMapOf<String, BackstackDestinationBinding>()
-    private val childSingleEntriesData = mutableMapOf<Int, BackstackEntryData.SingleEntryData>()
-    private val childBackstacksData = mutableMapOf<Int, BackstackEntryData.BackstackData>()
-    private var lastSyncEntries: List<BackstackEntryWrapper> = emptyList()
+    private val stackDestinationBindings = mutableMapOf<String, StackDestinationBinding>()
+    private val childSinglesData = mutableMapOf<Int, EntryData.SingleData>()
+    private val childStacksData = mutableMapOf<Int, EntryData.StackData>()
+    private var lastSyncEntries: List<EntryWrapper> = emptyList()
     private val elastikContext: ElastikContext
 
     internal val state: ElastikStateHolder
@@ -31,11 +31,11 @@ sealed class BaseRouter(context: ElastikContext) {
 
     val destinationId: String
 
-    val backstackEntryId: Int
+    val entryId: Int
 
     val parent: BaseRouter?
 
-    val backstack: Backstack? get() = state.backstack(backstackEntryId)
+    val stack: Stack? get() = state.stack(entryId)
 
     init {
         elastikContext = context
@@ -43,7 +43,7 @@ sealed class BaseRouter(context: ElastikContext) {
         state = routingContext.state
         val data = routingContext.getNewRouterData()
         destinationId = data.destinationId
-        backstackEntryId = data.backstackEntryId
+        entryId = data.entryId
         parent = data.parent
 
         setupAsRootIfAppropriate()
@@ -69,7 +69,7 @@ sealed class BaseRouter(context: ElastikContext) {
             return true
         }
 
-        val entries = backstack?.entries ?: return false
+        val entries = stack?.entries ?: return false
 
         // The back event need to be handled by parent
         if (entries.size <= 1) {
@@ -79,16 +79,16 @@ sealed class BaseRouter(context: ElastikContext) {
         val handledByChild = when (val topEntry = entries.lastOrNull()) {
             null -> false
 
-            is SingleEntry -> {
-                childSingleEntriesData[topEntry.id]
-                    .requireNotNull { Errors.entryNotFound(topEntry.id) }
+            is Single -> {
+                childSinglesData[topEntry.entryId]
+                    .requireNotNull { Errors.entryNotFound(topEntry.entryId) }
                     .backDispatcher
                     .dispatchBackEvent()
             }
 
-            is Backstack -> {
-                childBackstacksData[topEntry.id]
-                    .requireNotNull { Errors.entryNotFound(topEntry.id) }
+            is Stack -> {
+                childStacksData[topEntry.entryId]
+                    .requireNotNull { Errors.entryNotFound(topEntry.entryId) }
                     .router
                     .handleBack()
             }
@@ -120,15 +120,15 @@ sealed class BaseRouter(context: ElastikContext) {
         )
     }
 
-    internal fun addBackstackDestinationBinding(
+    internal fun addStackDestinationBinding(
         destinationId: String,
         routerFactory: (ElastikContext) -> BaseRouter,
-        renderFactory: (BaseRouter) -> BackstackRender,
+        renderFactory: (BaseRouter) -> StackRender,
     ) {
         require(!routingContext.isDestinationAlreadyExist(destinationId)) {
             Errors.destinationAlreadyExists(destinationId)
         }
-        backstackDestinationBindings[destinationId] = BackstackDestinationBinding(
+        stackDestinationBindings[destinationId] = StackDestinationBinding(
             routerFactory = routerFactory,
             renderFactory = renderFactory,
         )
@@ -146,19 +146,19 @@ sealed class BaseRouter(context: ElastikContext) {
         }
     }
 
-    private fun Backstack.extractAssociatedEntries(): List<BackstackEntryWrapper>? {
-        return find { it.id == backstackEntryId }
-            ?.castOrError<Backstack> {
-                Errors.backstackEntryUnexpectedType(
-                    backstackEntryId = backstackEntryId,
-                    backstackExpected = true
+    private fun Stack.extractAssociatedEntries(): List<EntryWrapper>? {
+        return find { it.entryId == this@BaseRouter.entryId }
+            ?.castOrError<Stack> {
+                Errors.entryUnexpectedType(
+                    entryId = this.entryId,
+                    stackExpected = true
                 )
             }
             ?.entries
             ?.map {
-                // Ignore entries inside child backstack when comparing
-                BackstackEntryWrapper(
-                    backstackEntryId = it.id,
+                // Ignore entries inside child stack when comparing
+                EntryWrapper(
+                    entryId = it.entryId,
                     destinationId = it.destinationId,
                     args = it.args,
                     entry = it,
@@ -167,8 +167,8 @@ sealed class BaseRouter(context: ElastikContext) {
     }
 
     private fun applyStateDiff(
-        oldEntries: List<BackstackEntryWrapper>,
-        newEntries: List<BackstackEntryWrapper>,
+        oldEntries: List<EntryWrapper>,
+        newEntries: List<EntryWrapper>,
     ) {
         differenceOf(
             original = oldEntries,
@@ -177,21 +177,21 @@ sealed class BaseRouter(context: ElastikContext) {
         ).applyDiff(
             remove = { index ->
                 when (val entryToRemove = oldEntries[index].entry) {
-                    is SingleEntry -> onRemoveSingleEntry(entryToRemove.id)
-                    is Backstack -> onRemoveBackstackEntry(entryToRemove.id)
+                    is Single -> onRemoveSingleEntry(entryToRemove.entryId)
+                    is Stack -> onRemoveStackEntry(entryToRemove.entryId)
                 }
             },
             insert = { entryWrapper, _ ->
                 when (val entryToInsert = entryWrapper.entry) {
-                    is SingleEntry -> onInsertSingleEntry(entryToInsert)
-                    is Backstack -> onInsertBackstackEntry(entryToInsert)
+                    is Single -> onInsertSingleEntry(entryToInsert)
+                    is Stack -> onInsertStackEntry(entryToInsert)
                 }
             },
             move = { _, _ -> }
         )
     }
 
-    private fun onInsertSingleEntry(entry: SingleEntry) {
+    private fun onInsertSingleEntry(entry: Single) {
         @Suppress("ReplaceGetOrSet")
         val destinationBinding = singleDestinationBindings
             .get(entry.destinationId)
@@ -204,21 +204,21 @@ sealed class BaseRouter(context: ElastikContext) {
         val backController = BackControllerImpl()
         val component = destinationBinding.componentFactory(backController)
 
-        childSingleEntriesData[entry.id] = BackstackEntryData.SingleEntryData(
-            backstackEntry = entry,
+        childSinglesData[entry.entryId] = EntryData.SingleData(
+            entry = entry,
             backDispatcher = backController,
             component = component,
         )
 
         routingContext.sendSingleRender(
-            backstackEntryId = entry.id,
+            entryId = entry.entryId,
             render = destinationBinding.renderFactory(component),
         )
     }
 
-    private fun onInsertBackstackEntry(entry: Backstack) {
+    private fun onInsertStackEntry(entry: Stack) {
         @Suppress("ReplaceGetOrSet")
-        val destinationBinding = backstackDestinationBindings
+        val destinationBinding = stackDestinationBindings
             .get(entry.destinationId)
             .requireNotNull {
                 Errors.destinationBindingNotFound(
@@ -227,41 +227,41 @@ sealed class BaseRouter(context: ElastikContext) {
                 )
             }
 
-        routingContext.rememberDataForNewRouter(
+        routingContext.rememberNewRouterData(
             destinationId = entry.destinationId,
-            backstackEntryId = entry.id,
+            entryId = entry.entryId,
             parent = this,
         )
         val router = destinationBinding.routerFactory(elastikContext)
         routingContext.clearNewRouterData()
 
-        childBackstacksData[entry.id] = BackstackEntryData.BackstackData(
-            backstackEntry = entry,
+        childStacksData[entry.entryId] = EntryData.StackData(
+            entry = entry,
             router = router,
         )
 
-        routingContext.sendBackstackRender(
-            backstackEntryId = entry.id,
+        routingContext.sendStackRender(
+            entryId = entry.entryId,
             render = destinationBinding.renderFactory(router)
         )
     }
 
-    private fun onRemoveSingleEntry(backstackEntryId: Int) {
-        childSingleEntriesData.remove(backstackEntryId)
-        routingContext.onSingleDestroyed(backstackEntryId)
+    private fun onRemoveSingleEntry(entryId: Int) {
+        childSinglesData.remove(entryId)
+        routingContext.onSingleDestroyed(entryId)
     }
 
-    private fun onRemoveBackstackEntry(backstackEntryId: Int) {
-        childBackstacksData.remove(backstackEntryId)
-        routingContext.onBackstackDestroyed(backstackEntryId)
+    private fun onRemoveStackEntry(entryId: Int) {
+        childStacksData.remove(entryId)
+        routingContext.onStackDestroyed(entryId)
     }
 
-    internal fun findComponentOrNull(backstackEntryId: Int): Any? {
-        return childSingleEntriesData[backstackEntryId]?.component
+    internal fun findComponentOrNull(entryId: Int): Any? {
+        return childSinglesData[entryId]?.component
     }
 
-    internal fun findRouterOrNull(backstackEntryId: Int): BaseRouter? {
-        return childBackstacksData[backstackEntryId]?.router
+    internal fun findRouterOrNull(entryId: Int): BaseRouter? {
+        return childStacksData[entryId]?.router
     }
 
     private fun validateData() {
@@ -280,19 +280,19 @@ sealed class BaseRouter(context: ElastikContext) {
             .subscribe(::handleBack)
     }
 
-    private sealed interface BackstackEntryData {
-        val backstackEntry: BackstackEntry
+    private sealed interface EntryData {
+        val entry: Entry
 
-        class SingleEntryData(
-            override val backstackEntry: SingleEntry,
+        class SingleData(
+            override val entry: Single,
             val backDispatcher: BackDispatcher,
             val component: Any,
-        ) : BackstackEntryData
+        ) : EntryData
 
-        data class BackstackData(
-            override val backstackEntry: Backstack,
+        data class StackData(
+            override val entry: Stack,
             val router: BaseRouter,
-        ) : BackstackEntryData
+        ) : EntryData
     }
 
     private class SingleDestinationBinding(
@@ -300,26 +300,26 @@ sealed class BaseRouter(context: ElastikContext) {
         val renderFactory: (Any) -> SingleRender,
     )
 
-    private class BackstackDestinationBinding(
+    private class StackDestinationBinding(
         val routerFactory: (ElastikContext) -> BaseRouter,
-        val renderFactory: (BaseRouter) -> BackstackRender,
+        val renderFactory: (BaseRouter) -> StackRender,
     )
 
-    private class BackstackEntryWrapper(
-        val backstackEntryId: Int,
+    private class EntryWrapper(
+        val entryId: Int,
         val destinationId: String,
         val args: Arguments,
-        val entry: BackstackEntry,
+        val entry: Entry,
     ) {
         override fun equals(other: Any?): Boolean {
-            return other is BackstackEntryWrapper &&
-                    backstackEntryId == other.backstackEntryId &&
+            return other is EntryWrapper &&
+                    entryId == other.entryId &&
                     destinationId == other.destinationId &&
                     args == other.args
         }
 
         override fun hashCode(): Int {
-            return backstackEntryId.hashCode() *
+            return entryId.hashCode() *
                     destinationId.hashCode() *
                     args.hashCode()
         }

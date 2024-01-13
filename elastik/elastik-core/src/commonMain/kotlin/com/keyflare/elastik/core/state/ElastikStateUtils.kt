@@ -4,14 +4,14 @@ import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.util.castOrError
 
 // TODO Make it more idiomatic (find/findOrNull)
-internal inline fun Backstack.find(predicate: (BackstackEntry) -> Boolean): BackstackEntry? {
-    var step: List<BackstackEntry> = listOf(this)
+internal inline fun Stack.find(predicate: (Entry) -> Boolean): Entry? {
+    var step: List<Entry> = listOf(this)
     while (true) {
-        val nextStep = mutableListOf<BackstackEntry>()
+        val nextStep = mutableListOf<Entry>()
         step.forEach { entry ->
             when {
                 predicate(entry) -> return entry
-                entry is Backstack -> nextStep += entry.entries
+                entry is Stack -> nextStep += entry.entries
             }
         }
         if (nextStep.size == 0) return null
@@ -19,58 +19,60 @@ internal inline fun Backstack.find(predicate: (BackstackEntry) -> Boolean): Back
     }
 }
 
-internal inline fun Backstack.transform(
-    transformation: (List<BackstackEntry>) -> List<BackstackEntry>,
-): Backstack {
-    return Backstack(
-        id = this.id,
+internal inline fun Stack.transform(
+    transformation: (List<Entry>) -> List<Entry>,
+): Stack {
+    return Stack(
+        entryId = this.entryId,
         args = this.args,
         destinationId = this.destinationId,
-        entries = transformation(entries)
+        entries = transformation(entries),
     )
 }
 
 // MVP solution!
 // TODO needs to be optimized
 //  - get rid of the recursion
-//  - idea: add int mask to id which tells about depth of an exact backstack in a tree
-internal fun Backstack.transform(
-    id: Int,
-    transformation: (List<BackstackEntry>) -> List<BackstackEntry>,
-): Backstack {
-    return if (this.id == id) {
+//  - idea: add int mask to id which tells about depth of an exact stack in a tree
+internal fun Stack.transform(
+    entryId: Int,
+    transformation: (List<Entry>) -> List<Entry>,
+): Stack {
+    return if (this.entryId == entryId) {
         transform(transformation)
     } else {
-        Backstack(
-            id = this.id,
+        Stack(
+            entryId = this.entryId,
             args = this.args,
             destinationId = this.destinationId,
             entries = entries.map { entry ->
                 when (entry) {
-                    is SingleEntry -> entry
-                    is Backstack -> entry.transform(id, transformation)
+                    is Single -> entry
+                    is Stack -> entry.transform(entryId, transformation)
                 }
             },
         )
     }
 }
 
-internal inline fun ElastikStateHolder.backstack(id: Int): Backstack? =
-    state.value
-        .find { it.id == id }
-        ?.castOrError<Backstack> {
-            Errors.backstackEntryUnexpectedType(
-                backstackEntryId = id,
-                backstackExpected = true,
+internal fun ElastikStateHolder.stack(id: Int): Stack? {
+    return state.value
+        .find { it.entryId == id }
+        ?.castOrError<Stack> {
+            Errors.entryUnexpectedType(
+                entryId = id,
+                stackExpected = true,
             )
         }
+}
 
-internal inline fun ElastikStateHolder.single(id: Int): SingleEntry? =
-    state.value
-        .find { it.id == id }
-        ?.castOrError<SingleEntry> {
-            Errors.backstackEntryUnexpectedType(
-                backstackEntryId = id,
-                backstackExpected = false,
+internal fun ElastikStateHolder.single(id: Int): Single? {
+    return state.value
+        .find { it.entryId == id }
+        ?.castOrError<Single> {
+            Errors.entryUnexpectedType(
+                entryId = id,
+                stackExpected = false,
             )
         }
+}

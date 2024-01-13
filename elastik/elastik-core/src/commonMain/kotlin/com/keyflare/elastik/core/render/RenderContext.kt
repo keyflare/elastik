@@ -1,68 +1,71 @@
 package com.keyflare.elastik.core.render
 
 import com.keyflare.elastik.core.Errors
-import com.keyflare.elastik.core.state.Backstack
+import com.keyflare.elastik.core.state.Stack
 import com.keyflare.elastik.core.state.ElastikStateHolder
 import com.keyflare.elastik.core.util.requireNotNull
 import kotlinx.coroutines.flow.StateFlow
 
 interface RenderContext {
-    val rootBackstack: StateFlow<Backstack>
+    val rootStack: StateFlow<Stack>
 
     fun addSingleRender(
-        backstackEntryId: Int,
+        entryId: Int,
         render: SingleRender,
     )
 
-    fun addBackstackRender(
-        backstackEntryId: Int,
-        render: BackstackRender,
+    fun addStackRender(
+        entryId: Int,
+        render: StackRender,
     )
 
-    fun removeSingleRender(backstackEntryId: Int)
-    fun removeBackstackRender(backstackEntryId: Int)
-    fun getSingleRender(backstackEntryId: Int): SingleRender
-    fun getBackstackRender(backstackEntryId: Int): BackstackRender
+    fun removeSingleRender(entryId: Int)
+
+    fun removeStackRender(entryId: Int)
+
+    fun getSingleRender(entryId: Int): SingleRender
+
+    fun getStackRender(entryId: Int): StackRender
 }
 
 internal class RenderContextImpl(state: ElastikStateHolder) : RenderContext {
 
-    private val singleRenders = mutableMapOf<Int, SingleRender>()
-    private val backstackRenders = mutableMapOf<Int, BackstackRender>()
+    private val singleRenderMap = mutableMapOf<Int, SingleRender>()
+    private val stackRenderMap = mutableMapOf<Int, StackRender>()
 
-    override val rootBackstack: StateFlow<Backstack> = state.state
+    override val rootStack: StateFlow<Stack> = state.state
 
     override fun addSingleRender(
-        backstackEntryId: Int,
+        entryId: Int,
         render: SingleRender,
     ) {
-        singleRenders[backstackEntryId] = render
+        singleRenderMap[entryId] = render
     }
 
-    override fun addBackstackRender(
-        backstackEntryId: Int,
-        render: BackstackRender,
+    override fun addStackRender(
+        entryId: Int,
+        render: StackRender,
     ) {
-        backstackRenders[backstackEntryId] = render
+        stackRenderMap[entryId] = render
     }
 
-    override fun removeSingleRender(backstackEntryId: Int) {
-        singleRenders.remove(backstackEntryId)
+    override fun removeSingleRender(entryId: Int) {
+        singleRenderMap.remove(entryId)
     }
 
-    override fun removeBackstackRender(backstackEntryId: Int) {
-        backstackRenders.remove(backstackEntryId)
+    override fun removeStackRender(entryId: Int) {
+        stackRenderMap.remove(entryId)
     }
 
-    override fun getSingleRender(backstackEntryId: Int): SingleRender {
-        return singleRenders[backstackEntryId].requireNotNull {
-            Errors.renderNotFound(backstackEntryId)
+    override fun getSingleRender(entryId: Int): SingleRender {
+        return singleRenderMap[entryId].requireNotNull {
+            Errors.renderNotFound(entryId)
         }
     }
 
-    override fun getBackstackRender(backstackEntryId: Int): BackstackRender {
-        return backstackRenders[backstackEntryId].requireNotNull {
-            Errors.renderNotFound(backstackEntryId)
+    override fun getStackRender(entryId: Int): StackRender {
+        return stackRenderMap[entryId].requireNotNull {
+            Errors.renderNotFound(entryId)
         }
     }
 }

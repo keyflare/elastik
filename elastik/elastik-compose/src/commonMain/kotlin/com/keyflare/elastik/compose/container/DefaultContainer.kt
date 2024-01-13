@@ -7,11 +7,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
-import com.keyflare.elastik.core.state.BackstackEntry
+import com.keyflare.elastik.core.state.Entry
 
 @Composable
 fun DefaultContainer(
-    entries: State<List<BackstackEntry>>,
+    entries: State<List<Entry>>,
 ) {
     BasicReplaceEntryContainer(
         entry = entries.value.last(),

@@ -8,19 +8,19 @@ import com.keyflare.elastik.core.routing.router.StaticRouter
 
 class RootRouter(context: ElastikContext) : StaticRouter(context) {
 
-    val mainRouter = backstackNoArgs(
+    val mainRouter = stackNoArgs(
         destinationId = "main",
         routerFactory = { MainRouter(it) },
         renderFactory = { NoRender },
     )
 
-    val bottomSheetRouter = backstackNoArgs(
+    val bottomSheetRouter = stackNoArgs(
         destinationId = "bottomSheet",
         routerFactory = { BottomSheetRouter(it) },
         renderFactory = { NoRender },
     )
 
-    val dialogRouter = backstackNoArgs(
+    val dialogRouter = stackNoArgs(
         destinationId = "dialog",
         routerFactory = { DialogRouter(it) },
         renderFactory = { NoRender },
@@ -35,7 +35,7 @@ class MainRouter(context: ElastikContext) : DynamicRouter(context) {
         renderFactory = { NoRender },
     )
 
-    val bottomNavigationScreen = backstack<BottomNavRouter.OpenedTab, BottomNavRouter>(
+    val bottomNavigationScreen = stack<BottomNavRouter.OpenedTab, BottomNavRouter>(
         destinationId = "bottomNavigationScreen",
         routerFactory = { BottomNavRouter(it) },
         renderFactory = { NoRender },
@@ -60,7 +60,7 @@ class BottomNavRouter(context: ElastikContext) : StaticRouter(context) {
         renderFactory = { NoRender },
     )
 
-    val settingsTab = backstackNoArgs(
+    val settingsTab = stackNoArgs(
         destinationId = "settingsTab",
         routerFactory = { SettingsRouter(it) },
         renderFactory = { NoRender },

@@ -1,12 +1,12 @@
 package com.keyflare.elastik.core.routing.router
 
 import com.keyflare.elastik.core.state.Arguments
-import com.keyflare.elastik.core.state.Backstack
-import com.keyflare.elastik.core.state.BackstackEntry
-import com.keyflare.elastik.core.state.BackstackTransaction
-import com.keyflare.elastik.core.state.BackstackTransformation
+import com.keyflare.elastik.core.state.Stack
+import com.keyflare.elastik.core.state.Entry
+import com.keyflare.elastik.core.state.StackTransaction
+import com.keyflare.elastik.core.state.StackTransformation
 import com.keyflare.elastik.core.state.EmptyArguments
-import com.keyflare.elastik.core.state.SingleEntry
+import com.keyflare.elastik.core.state.Single
 import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.routing.tree.DynamicRouterTreeBuilder
 import com.keyflare.elastik.core.routing.tree.DynamicRouterTreeBuilderDelegate
@@ -34,7 +34,7 @@ abstract class DynamicRouter(context: ElastikContext) :
         destination: Destination<Args>,
         args: Args,
     ) {
-        navigate { it + createBackstackEntry(destination, args) }
+        navigate { it + createStackEntry(destination, args) }
     }
 
     override fun onHandleBack() {
@@ -42,13 +42,13 @@ abstract class DynamicRouter(context: ElastikContext) :
     }
 
     protected fun navigate(
-        transformation: (List<BackstackEntry>) -> List<BackstackEntry>,
+        transformation: (List<Entry>) -> List<Entry>,
     ) {
         state.pushTransaction(
-            BackstackTransaction(
+            StackTransaction(
                 transformations = listOf(
-                    BackstackTransformation(
-                        backstackId = backstackEntryId,
+                    StackTransformation(
+                        entryId = entryId,
                         transformation = transformation,
                     )
                 )
@@ -56,21 +56,21 @@ abstract class DynamicRouter(context: ElastikContext) :
         )
     }
 
-    private fun createBackstackEntry(
+    private fun createStackEntry(
         destination: Destination<*>,
         args: Arguments,
-    ): BackstackEntry {
-        val id = routingContext.obtainIdForNewBackstackEntry()
-        return if (destination.isSingle) {
-            SingleEntry(
-                id = id,
-                destinationId = destination.id,
+    ): Entry {
+        val id = routingContext.obtainNewEntryId()
+        return if (destination.single) {
+            Single(
+                entryId = id,
+                destinationId = destination.destinationId,
                 args = args,
             )
         } else {
-            Backstack(
-                id = id,
-                destinationId = destination.id,
+            Stack(
+                entryId = id,
+                destinationId = destination.destinationId,
                 args = args,
                 entries = emptyList(),
             )

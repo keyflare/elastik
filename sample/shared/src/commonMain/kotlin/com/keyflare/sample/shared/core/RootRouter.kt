@@ -1,7 +1,7 @@
 package com.keyflare.sample.shared.core
 
 import co.touchlab.kermit.Logger
-import com.keyflare.elastik.compose.render.ComposeBackstackRender
+import com.keyflare.elastik.compose.render.ComposeStackRender
 import com.keyflare.elastik.compose.render.ComposeSingleRender
 import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.routing.router.DynamicRouter
@@ -23,10 +23,10 @@ class RootRouter(context: ElastikContext) : DynamicRouter(context) {
         renderFactory = ComposeSingleRender.factory { SplashScreen(it) },
     )
 
-    val mainTabs = backstackNoArgs(
+    val mainTabs = stackNoArgs(
         destinationId = "mainTabs",
         routerFactory = { MainTabsRouter(it) },
-        renderFactory = { ComposeBackstackRender() },
+        renderFactory = { ComposeStackRender() },
     )
 
     val containers = singleNoArgs(

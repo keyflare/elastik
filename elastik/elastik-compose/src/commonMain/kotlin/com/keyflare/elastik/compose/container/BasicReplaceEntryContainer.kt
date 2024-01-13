@@ -15,11 +15,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.keyflare.elastik.compose.view.ElastikBinder
-import com.keyflare.elastik.core.state.BackstackEntry
+import com.keyflare.elastik.core.state.Entry
 
 @Composable
 fun BasicReplaceEntryContainer(
-    entry: BackstackEntry,
+    entry: Entry,
     modifier: Modifier = Modifier,
     contentAlignment: Alignment = Alignment.TopStart,
     transitionSpec: AnimatedContentTransitionScope<Int>.() -> ContentTransform =
@@ -27,11 +27,11 @@ fun BasicReplaceEntryContainer(
 ) {
     var current by remember { mutableStateOf(entry) }
     var previous by remember { mutableStateOf(entry) }
-    var animationKey by remember { mutableStateOf(entry.id) }
+    var animationKey by remember { mutableStateOf(entry.entryId) }
 
-    if (entry.id != current.id) {
+    if (entry.entryId != current.entryId) {
         previous = current
-        animationKey = entry.id
+        animationKey = entry.entryId
     }
     if (current != entry) {
         current = entry
@@ -43,7 +43,7 @@ fun BasicReplaceEntryContainer(
         transitionSpec = transitionSpec,
         label = "ReplaceEntryContainer",
     ) { key ->
-        val actualState = rememberUpdatedState(if (current.id == key) current else previous)
+        val actualState = rememberUpdatedState(if (current.entryId == key) current else previous)
         ElastikBinder(
             actualState,
             modifier = modifier,

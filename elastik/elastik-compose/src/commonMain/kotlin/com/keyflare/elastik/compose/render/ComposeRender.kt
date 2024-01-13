@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.State
 import com.keyflare.elastik.compose.container.DefaultContainer
-import com.keyflare.elastik.core.render.BackstackRender
+import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
 import com.keyflare.elastik.core.render.Transition
-import com.keyflare.elastik.core.state.BackstackEntry
+import com.keyflare.elastik.core.state.Entry
 import kotlin.jvm.JvmInline
 
 @Immutable
@@ -39,11 +39,11 @@ value class ComposeSingleContent(
 ) : SingleRender.Content
 
 @Immutable
-class ComposeBackstackRender(
+class ComposeStackRender(
     override val transition: ComposeTransition? = null,
     override val defaultChildrenTransition: ComposeTransition? = null,
-    container: @Composable (entries: State<List<BackstackEntry>>) -> Unit = { DefaultContainer(it) },
-) : BackstackRender {
+    container: @Composable (entries: State<List<Entry>>) -> Unit = { DefaultContainer(it) },
+) : StackRender {
 
     override val container: ComposeContainer = ComposeContainer(container)
 }
@@ -51,8 +51,8 @@ class ComposeBackstackRender(
 @JvmInline
 @Immutable
 value class ComposeContainer(
-    val composable: @Composable (entries: State<List<BackstackEntry>>) -> Unit
-) : BackstackRender.Container
+    val composable: @Composable (entries: State<List<Entry>>) -> Unit
+) : StackRender.Container
 
 @Immutable
 class ComposeTransition : Transition
