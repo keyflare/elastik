@@ -21,8 +21,8 @@ sealed class BaseRouter(context: ElastikContext) {
 
     private val singleDestinationBindings = mutableMapOf<String, SingleDestinationBinding>()
     private val stackDestinationBindings = mutableMapOf<String, StackDestinationBinding>()
-    private val childSinglesData = mutableMapOf<Int, EntryData.SingleData>()
-    private val childStacksData = mutableMapOf<Int, EntryData.StackData>()
+    private val singleChildren = mutableMapOf<Int, Child.SingleChild>()
+    private val stackChildren = mutableMapOf<Int, Child.StackChild>()
     private var lastSyncEntries: List<EntryWrapper> = emptyList()
     private val elastikContext: ElastikContext
 
@@ -35,7 +35,12 @@ sealed class BaseRouter(context: ElastikContext) {
 
     val parent: BaseRouter?
 
+    // TODO make not null
     val stack: Stack? get() = state.stack(entryId)
+
+    // TODO make not null
+    val children: List<Any?>? get() = stack?.entries
+        ?.map { singleChildren[it.entryId]?.component ?: stackChildren[it.entryId]?.router }
 
     init {
         elastikContext = context
@@ -80,14 +85,14 @@ sealed class BaseRouter(context: ElastikContext) {
             null -> false
 
             is Single -> {
-                childSinglesData[topEntry.entryId]
+                singleChildren[topEntry.entryId]
                     .requireNotNull { Errors.entryNotFound(topEntry.entryId) }
                     .backDispatcher
                     .dispatchBackEvent()
             }
 
             is Stack -> {
-                childStacksData[topEntry.entryId]
+                stackChildren[topEntry.entryId]
                     .requireNotNull { Errors.entryNotFound(topEntry.entryId) }
                     .router
                     .handleBack()
@@ -204,7 +209,7 @@ sealed class BaseRouter(context: ElastikContext) {
         val backController = BackControllerImpl()
         val component = destinationBinding.componentFactory(backController)
 
-        childSinglesData[entry.entryId] = EntryData.SingleData(
+        singleChildren[entry.entryId] = Child.SingleChild(
             entry = entry,
             backDispatcher = backController,
             component = component,
@@ -235,7 +240,7 @@ sealed class BaseRouter(context: ElastikContext) {
         val router = destinationBinding.routerFactory(elastikContext)
         routingContext.clearNewRouterData()
 
-        childStacksData[entry.entryId] = EntryData.StackData(
+        stackChildren[entry.entryId] = Child.StackChild(
             entry = entry,
             router = router,
         )
@@ -247,21 +252,21 @@ sealed class BaseRouter(context: ElastikContext) {
     }
 
     private fun onRemoveSingleEntry(entryId: Int) {
-        childSinglesData.remove(entryId)
+        singleChildren.remove(entryId)
         routingContext.onSingleDestroyed(entryId)
     }
 
     private fun onRemoveStackEntry(entryId: Int) {
-        childStacksData.remove(entryId)
+        stackChildren.remove(entryId)
         routingContext.onStackDestroyed(entryId)
     }
 
     internal fun findComponentOrNull(entryId: Int): Any? {
-        return childSinglesData[entryId]?.component
+        return singleChildren[entryId]?.component
     }
 
     internal fun findRouterOrNull(entryId: Int): BaseRouter? {
-        return childStacksData[entryId]?.router
+        return stackChildren[entryId]?.router
     }
 
     private fun validateData() {
@@ -280,19 +285,19 @@ sealed class BaseRouter(context: ElastikContext) {
             .subscribe(::handleBack)
     }
 
-    private sealed interface EntryData {
+    private sealed interface Child {
         val entry: Entry
 
-        class SingleData(
+        class SingleChild(
             override val entry: Single,
             val backDispatcher: BackDispatcher,
             val component: Any,
-        ) : EntryData
+        ) : Child
 
-        data class StackData(
+        data class StackChild(
             override val entry: Stack,
             val router: BaseRouter,
-        ) : EntryData
+        ) : Child
     }
 
     private class SingleDestinationBinding(
