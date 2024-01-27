@@ -74,11 +74,9 @@ class RouterTreeBuilderDslTest {
 
         root.children!![2]!!.let { rootChild ->
             rootChild.check(dstId = "G", single = false, static = false)
-            rootChild.cast<BaseRouter>().children!![0]!!.check(dstId = "H", single = true)
-
-            rootChild.children!![1]!!.let {
-                it.check(dstId = "I", single = false, static = false)
-                assertTrue { it.cast<BaseRouter>().children!!.isEmpty() }
+            assertTrue(message = "Dynamic router must not have entries right after initiation") {
+                println("!!! ${rootChild.cast<BaseRouter>().children}")
+                rootChild.cast<BaseRouter>().children!!.isEmpty()
             }
         }
     }

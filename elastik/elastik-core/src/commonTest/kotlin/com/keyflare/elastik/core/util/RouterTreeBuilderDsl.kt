@@ -9,13 +9,13 @@ import com.keyflare.elastik.core.routing.router.StaticRouter
 fun ElastikContext.createStaticRoot(
     body: RouterTreeBuilderScope.() -> Unit,
 ): BaseRouter {
-    return BackHandleTestRootRouterBuilder(this, body, isStatic = true).build()
+    return RouterTreeBuilder(this, body, isStatic = true).build()
 }
 
 fun ElastikContext.createDynamicRoot(
     body: RouterTreeBuilderScope.() -> Unit,
 ): BaseRouter {
-    return BackHandleTestRootRouterBuilder(this, body, isStatic = false).build()
+    return RouterTreeBuilder(this, body, isStatic = false).build()
 }
 
 interface RouterTreeBuilderScope {
@@ -24,11 +24,11 @@ interface RouterTreeBuilderScope {
     fun dynamic(body: RouterTreeBuilderScope.() -> Unit)
 }
 
-class BaseTestStaticRouter(
+open class TestStaticRouter(
     context: ElastikContext,
 ) : StaticRouter(context)
 
-class BaseTestDynamicRouter(
+open class TestDynamicRouter(
     context: ElastikContext,
 ) : DynamicRouter(context)
 
@@ -82,7 +82,7 @@ private class RouterTreeBuilderScopeImpl(
             var n = currentIndex++
             val l = alphabet.length
             var result = ""
-            while(n >= 0) {
+            while (n >= 0) {
                 result = "${alphabet[n % l]}$result"
                 n = n / l - 1
             }
@@ -91,7 +91,7 @@ private class RouterTreeBuilderScopeImpl(
     }
 }
 
-private class BackHandleTestRootRouterBuilder(
+private class RouterTreeBuilder(
     private val context: ElastikContext,
     private val body: RouterTreeBuilderScopeImpl.() -> Unit,
     private val isStatic: Boolean,
@@ -104,107 +104,116 @@ private class BackHandleTestRootRouterBuilder(
         }
 
         val root = if (isStatic) {
-            BaseTestStaticRouter(context)
+            object : TestStaticRouter(context) {
+                init {
+                    entriesToBuild.forEach { destination(it) }
+                }
+            }
         } else {
-            BaseTestDynamicRouter(context)
+            object : TestDynamicRouter(context) {
+                init {
+                    entriesToBuild.forEach { destination(it) }
+                }
+            }
         }
-
-        entriesToBuild.forEach { buildEntry(it, root) }
 
         return root
     }
 
-    private fun buildEntry(entry: DestinationBuilderData, parent: BaseRouter) {
-        when (parent) {
-            is StaticRouter -> parent.apply {
-                when {
-                    entry is SingleBuilderData ->
-                        testSingle(entry.destinationId)
+    private fun BaseRouter.destination(entry: DestinationBuilderData) {
+        when {
+            entry is SingleBuilderData ->
+                testSingle(entry.destinationId)
 
-                    entry is StackBuilderData && entry.isStatic ->
-                        testStaticStack(entry.destinationId) {
-                            entry.children.forEach { buildEntry(it, parent = this) }
-                        }
-
-                    entry is StackBuilderData && !entry.isStatic ->
-                        testDynamicStack(entry.destinationId) {
-                            entry.children.forEach { buildEntry(it, parent = this) }
-                        }
+            entry is StackBuilderData && entry.isStatic ->
+                testStaticStack(entry.destinationId) {
+                    entry.children.forEach { destination(it) }
                 }
-            }
 
-            is DynamicRouter -> parent.apply {
-                when {
-                    entry is SingleBuilderData -> {
-                        val destination = testSingle(entry.destinationId)
-                        navigateTo(destination.destination)
-                    }
-
-                    entry is StackBuilderData && entry.isStatic -> {
-                        val destination = testStaticStack(entry.destinationId) {
-                            entry.children.forEach { buildEntry(it, parent = this) }
-                        }
-                        navigateTo(destination.destination)
-                    }
-
-                    entry is StackBuilderData && !entry.isStatic -> {
-                        val destination = testDynamicStack(entry.destinationId) {
-                            entry.children.forEach { buildEntry(it, parent = this) }
-                        }
-                        navigateTo(destination.destination)
-                    }
+            entry is StackBuilderData && !entry.isStatic ->
+                testDynamicStack(entry.destinationId) {
+                    entry.children.forEach { destination(it) }
                 }
-            }
         }
     }
 
-    private fun StaticRouter.testSingle(destinationId: String) = singleNoArgs(
-        destinationId = destinationId,
-        renderFactory = { NoRender },
-        componentFactory = { TestScreenComponent(destinationId) }
-    )
+    private fun BaseRouter.testSingle(destinationId: String) {
+        when (this) {
+            is StaticRouter -> singleNoArgs(
+                destinationId = destinationId,
+                renderFactory = { NoRender },
+                componentFactory = { TestScreenComponent(destinationId) }
+            )
 
-    private fun StaticRouter.testStaticStack(
+            is DynamicRouter -> singleNoArgs(
+                destinationId = destinationId,
+                renderFactory = { NoRender },
+                componentFactory = { TestScreenComponent(destinationId) }
+            )
+        }
+    }
+
+    private fun BaseRouter.testStaticStack(
         destinationId: String,
         entriesFactory: StaticRouter.() -> Unit,
-    ) = stackNoArgs(
-        destinationId = destinationId,
-        renderFactory = { NoRender },
-        routerFactory = { BaseTestStaticRouter(it).apply { entriesFactory() } }
-    )
+    ) {
+        when (this) {
+            is StaticRouter -> stackNoArgs(
+                destinationId = destinationId,
+                renderFactory = { NoRender },
+                routerFactory = {
+                    object : TestStaticRouter(it) {
+                        init {
+                            entriesFactory()
+                        }
+                    }
+                }
+            )
 
-    private fun StaticRouter.testDynamicStack(
+            is DynamicRouter -> stackNoArgs(
+                destinationId = destinationId,
+                renderFactory = { NoRender },
+                routerFactory = {
+                    object : TestStaticRouter(it) {
+                        init {
+                            entriesFactory()
+                        }
+                    }
+                }
+            )
+        }
+    }
+
+    private fun BaseRouter.testDynamicStack(
         destinationId: String,
         entriesFactory: DynamicRouter.() -> Unit,
-    ) = stackNoArgs(
-        destinationId = destinationId,
-        renderFactory = { NoRender },
-        routerFactory = { BaseTestDynamicRouter(it).apply { entriesFactory() } }
-    )
+    ) {
+        when(this) {
+            is StaticRouter -> stackNoArgs(
+                destinationId = destinationId,
+                renderFactory = { NoRender },
+                routerFactory = {
+                    object : TestDynamicRouter(it) {
+                        init {
+                            entriesFactory()
+                        }
+                    }
+                }
+            )
 
-    private fun DynamicRouter.testSingle(destinationId: String) = singleNoArgs(
-        destinationId = destinationId,
-        renderFactory = { NoRender },
-        componentFactory = { TestScreenComponent(destinationId) }
-    )
-
-    private fun DynamicRouter.testStaticStack(
-        destinationId: String,
-        entriesFactory: StaticRouter.() -> Unit,
-    ) = stackNoArgs(
-        destinationId = destinationId,
-        renderFactory = { NoRender },
-        routerFactory = { context -> BaseTestStaticRouter(context).apply { entriesFactory() } }
-    )
-
-    private fun DynamicRouter.testDynamicStack(
-        destinationId: String,
-        entriesFactory: DynamicRouter.() -> Unit,
-    ) = stackNoArgs(
-        destinationId = destinationId,
-        renderFactory = { NoRender },
-        routerFactory = { BaseTestDynamicRouter(it).apply { entriesFactory() } }
-    )
+            is DynamicRouter -> stackNoArgs(
+                destinationId = destinationId,
+                renderFactory = { NoRender },
+                routerFactory = {
+                    object : TestDynamicRouter(it) {
+                        init {
+                            entriesFactory()
+                        }
+                    }
+                }
+            )
+        }
+    }
 }
 
 private sealed interface DestinationBuilderData
