@@ -15,6 +15,8 @@ import com.keyflare.elastik.core.routing.RoutingContext
 import com.keyflare.elastik.core.util.castOrError
 import com.keyflare.elastik.core.util.requireNotNull
 import com.keyflare.elastik.core.routing.diff.differenceOf
+import com.keyflare.elastik.core.routing.router.BaseRouter.DestinationBinding.SingleDestinationBinding
+import com.keyflare.elastik.core.routing.router.BaseRouter.DestinationBinding.StackDestinationBinding
 
 // TODO maybe create an interface
 sealed class BaseRouter(context: ElastikContext) {
@@ -23,6 +25,7 @@ sealed class BaseRouter(context: ElastikContext) {
     private val stackDestinationBindings = mutableMapOf<String, StackDestinationBinding>()
     private val singleChildren = mutableMapOf<Int, Child.SingleChild>()
     private val stackChildren = mutableMapOf<Int, Child.StackChild>()
+    private val addedDestinations: MutableSet<String> = mutableSetOf()
     private var lastSyncEntries: List<EntryWrapper> = emptyList()
     private val elastikContext: ElastikContext
 
@@ -39,20 +42,22 @@ sealed class BaseRouter(context: ElastikContext) {
     val stack: Stack? get() = state.stack(entryId)
 
     // TODO make not null
-    val children: List<Any?>? get() = stack?.entries
-        ?.map { singleChildren[it.entryId]?.component ?: stackChildren[it.entryId]?.router }
+    val children: List<Any?>?
+        get() = stack?.entries
+            ?.map { singleChildren[it.entryId]?.component ?: stackChildren[it.entryId]?.router }
 
     // TODO make not null
-    val childComponents: List<Any?>? get() = stack?.entries
-        ?.map { singleChildren[it.entryId]?.component }
+    val childComponents: List<Any?>?
+        get() = stack?.entries
+            ?.map { singleChildren[it.entryId]?.component }
 
     // TODO make not null
-    val childRouters: List<BaseRouter?>? get() = stack?.entries
-        ?.map { stackChildren[it.entryId]?.router }
+    val childRouters: List<BaseRouter?>?
+        get() = stack?.entries
+            ?.map { stackChildren[it.entryId]?.router }
 
     // TODO make more readable (maybe value class or something)
-    val destinations: List<String> get() =
-        singleDestinationBindings.map { it.key } + stackDestinationBindings.map { it.key }
+    val destinations: List<String> get() = addedDestinations.toList()
 
     val singleDestinations: List<String> get() = singleDestinationBindings.map { it.key }
 
@@ -132,10 +137,11 @@ sealed class BaseRouter(context: ElastikContext) {
         componentFactory: ((BackHandler) -> Any),
         renderFactory: ((Any) -> SingleRender),
     ) {
-        require(!routingContext.isDestinationAlreadyExist(destinationId)) {
+        require(addedDestinations.add(destinationId)) {
             Errors.destinationAlreadyExists(destinationId)
         }
         singleDestinationBindings[destinationId] = SingleDestinationBinding(
+            destinationId = destinationId,
             componentFactory = componentFactory,
             renderFactory = renderFactory,
         )
@@ -146,10 +152,11 @@ sealed class BaseRouter(context: ElastikContext) {
         routerFactory: (ElastikContext) -> BaseRouter,
         renderFactory: (BaseRouter) -> StackRender,
     ) {
-        require(!routingContext.isDestinationAlreadyExist(destinationId)) {
+        require(addedDestinations.add(destinationId)) {
             Errors.destinationAlreadyExists(destinationId)
         }
         stackDestinationBindings[destinationId] = StackDestinationBinding(
+            destinationId = destinationId,
             routerFactory = routerFactory,
             renderFactory = renderFactory,
         )
@@ -316,15 +323,21 @@ sealed class BaseRouter(context: ElastikContext) {
         ) : Child
     }
 
-    private class SingleDestinationBinding(
-        val componentFactory: (BackHandler) -> Any,
-        val renderFactory: (Any) -> SingleRender,
-    )
+    private sealed interface DestinationBinding {
+        val destinationId: String
 
-    private class StackDestinationBinding(
-        val routerFactory: (ElastikContext) -> BaseRouter,
-        val renderFactory: (BaseRouter) -> StackRender,
-    )
+        class SingleDestinationBinding(
+            override val destinationId: String,
+            val componentFactory: (BackHandler) -> Any,
+            val renderFactory: (Any) -> SingleRender,
+        ) : DestinationBinding
+
+        class StackDestinationBinding(
+            override val destinationId: String,
+            val routerFactory: (ElastikContext) -> BaseRouter,
+            val renderFactory: (BaseRouter) -> StackRender,
+        ) : DestinationBinding
+    }
 
     private class EntryWrapper(
         val entryId: Int,

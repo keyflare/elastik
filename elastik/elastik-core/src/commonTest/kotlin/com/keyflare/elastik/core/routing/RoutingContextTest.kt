@@ -7,8 +7,6 @@ import com.keyflare.elastik.core.routing.router.StaticRouter
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 internal class RoutingContextTest {
 
@@ -56,21 +54,4 @@ internal class RoutingContextTest {
         }
     }
 
-    @Test
-    fun `Validation of destinationId uniqueness test`() {
-        (0 until 100)
-            .toMutableList()
-            .apply { set(45, 0) } // not unique id on 45 index
-            .apply { set(32, 17) } // not unique id on 32 index
-            .apply { set(95, 50) } // not unique id on 95 index
-            .map { it.toString() }
-            .map { context.routingContext.isDestinationAlreadyExist(it) }
-            .forEachIndexed { index, exists ->
-                if (index in listOf(32, 45, 95)) {
-                    assertTrue { exists }
-                } else {
-                    assertFalse { exists }
-                }
-            }
-    }
 }

@@ -47,9 +47,6 @@ internal interface RoutingContext {
 
     fun clearNewRouterData()
 
-    // TODO refactor this approach
-    fun isDestinationAlreadyExist(destinationId: String): Boolean
-
     fun dispatchBackEvent()
 
     interface RenderReceiver {
@@ -80,8 +77,6 @@ internal class RoutingContextImpl(
     private var dataForNewRouter: NewRouterData? = ROOT_ROUTER_DATA
 
     private var renderReceiver: RoutingContext.RenderReceiver? = null
-
-    private val addedDestinations = mutableSetOf<String>()
 
     override val backEventsDispatcher = BackEventsDispatcher()
 
@@ -144,10 +139,6 @@ internal class RoutingContextImpl(
 
     override fun clearNewRouterData() {
         dataForNewRouter = null
-    }
-
-    override fun isDestinationAlreadyExist(destinationId: String): Boolean {
-        return !addedDestinations.add(destinationId)
     }
 
     override fun dispatchBackEvent() {
