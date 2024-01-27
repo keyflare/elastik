@@ -45,7 +45,7 @@ class RouterTreeBuilderDslTest {
                     single() // F
                 }
             }
-            dynamic { // GA
+            dynamic { // G
                 single() // H
                 dynamic {} // I
             }

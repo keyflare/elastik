@@ -42,6 +42,22 @@ sealed class BaseRouter(context: ElastikContext) {
     val children: List<Any?>? get() = stack?.entries
         ?.map { singleChildren[it.entryId]?.component ?: stackChildren[it.entryId]?.router }
 
+    // TODO make not null
+    val childComponents: List<Any?>? get() = stack?.entries
+        ?.map { singleChildren[it.entryId]?.component }
+
+    // TODO make not null
+    val childRouters: List<BaseRouter?>? get() = stack?.entries
+        ?.map { stackChildren[it.entryId]?.router }
+
+    // TODO make more readable (maybe value class or something)
+    val destinations: List<String> get() =
+        singleDestinationBindings.map { it.key } + stackDestinationBindings.map { it.key }
+
+    val singleDestinations: List<String> get() = singleDestinationBindings.map { it.key }
+
+    val stackDestinations: List<String> get() = stackDestinationBindings.map { it.key }
+
     init {
         elastikContext = context
         routingContext = elastikContext.routingContext
