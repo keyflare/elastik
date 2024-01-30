@@ -83,6 +83,25 @@ sealed class BaseRouter(context: ElastikContext) {
         else -> parent.root()
     }
 
+    fun moreThanOneSingleLeft(): Boolean {
+        var currentRouters: List<BaseRouter> = listOf(this)
+        var singlesCounter = 0
+
+        while (currentRouters.isNotEmpty()) {
+            val nextIterationRouters = mutableListOf<BaseRouter>()
+            for (r in currentRouters) {
+                singlesCounter += r.singleChildren.size
+                if (singlesCounter > 1) {
+                    return true
+                }
+                nextIterationRouters += r.stackChildren.map { it.value.router }
+            }
+            currentRouters = nextIterationRouters
+        }
+
+        return false
+    }
+
     protected open fun onHandleBack() {
         // Do nothing by default
     }

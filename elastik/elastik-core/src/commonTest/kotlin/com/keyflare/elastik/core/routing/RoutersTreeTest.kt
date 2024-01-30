@@ -6,6 +6,7 @@ import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
 import com.keyflare.elastik.core.util.applyNavigation
+import com.keyflare.elastik.core.util.createDynamicRoot
 import com.keyflare.elastik.core.util.createStaticRoot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,9 +17,11 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 internal class RoutersTreeTest {
 
@@ -233,6 +236,51 @@ internal class RoutersTreeTest {
         assertEquals(root, routerI.root())
         assertEquals(root, routerE.root())
         assertEquals(root, routerG.root())
+    }
+
+    @Test
+    fun `Last single left method test`() {
+        fun createRoot(): BaseRouter {
+            elastikContext = ElastikContext.create(NoRender)
+            return elastikContext.createDynamicRoot {
+                single() // A
+                static { // B
+                    single() // C
+                }
+                dynamic { // D
+                    static { // E
+                        single() // F
+                    }
+                }
+            }
+        }
+
+        // Simple test - zero singles, one single, two singles
+        var root = createRoot()
+        assertFalse { root.moreThanOneSingleLeft() }
+        root.applyNavigation {
+            router("root") navigate "A"
+        }
+        assertFalse { root.moreThanOneSingleLeft() }
+        root.applyNavigation {
+            router("root") navigate "A"
+        }
+        assertTrue { root.moreThanOneSingleLeft() }
+
+        // Complicated hierarchy test
+        root = createRoot()
+        root.applyNavigation {
+            router("root") navigate "D"
+        }
+        assertFalse { root.moreThanOneSingleLeft() }
+        root.applyNavigation {
+            router("D") navigate "E"
+        }
+        assertFalse { root.moreThanOneSingleLeft() }
+        root.applyNavigation {
+            router("root") navigate "B"
+        }
+        assertTrue { root.moreThanOneSingleLeft() }
     }
 }
 
