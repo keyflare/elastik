@@ -7,6 +7,7 @@ compose = "1.5.4"
 compose-plugin = "1.5.3"
 compose-compiler = "1.5.3"
 kermit = "2.0.2"
+turbine = "1.0.0"
 androidx-activity = "1.8.1"
 
 [libraries]
@@ -15,6 +16,7 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 compose-android-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-android-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-android-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }

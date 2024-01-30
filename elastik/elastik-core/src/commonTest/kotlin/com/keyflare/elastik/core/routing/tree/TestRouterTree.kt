@@ -1,4 +1,4 @@
-package com.keyflare.elastik.core.routing
+package com.keyflare.elastik.core.routing.tree
 
 import com.keyflare.elastik.core.state.Arguments
 import com.keyflare.elastik.core.context.ElastikContext

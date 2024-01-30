@@ -37,8 +37,29 @@ abstract class DynamicRouter(context: ElastikContext) :
         navigate { it + createStackEntry(destination, args) }
     }
 
-    override fun onHandleBack() {
-        navigate { it.dropLast(1) }
+    override fun onHandleBack(): Boolean {
+        val children = children
+        val childrenSize = children.size // TODO: refactor unsafe approach
+
+        return when {
+            childrenSize > 1 -> {
+                navigate { it.dropLast(1) }
+                true
+            }
+
+            parent == null || childrenSize == 0 || parent is DynamicRouter -> {
+                false
+            }
+
+            parent.moreThanOneSingleLeft() -> {
+                navigate { it.dropLast(1) }
+                true
+            }
+
+            else -> {
+                false
+            }
+        }
     }
 
     protected fun navigate(

@@ -75,7 +75,7 @@ sealed class BaseRouter(context: ElastikContext) {
     }
 
     fun onBack() {
-        routingContext.backEventsDispatcher.dispatch()
+        routingContext.globalBackDispatcher.dispatch()
     }
 
     tailrec fun root(): BaseRouter = when (parent) {
@@ -102,8 +102,9 @@ sealed class BaseRouter(context: ElastikContext) {
         return false
     }
 
-    protected open fun onHandleBack() {
-        // Do nothing by default
+    protected open fun onHandleBack(): Boolean {
+        // Does not handle by default
+        return false
     }
 
     protected open fun onInterceptBack(): Boolean {
@@ -116,30 +117,33 @@ sealed class BaseRouter(context: ElastikContext) {
             return true
         }
 
-        val entries = stack?.entries ?: return false
+        val entries = stack.entries
 
-        // The back event need to be handled by parent
-        if (entries.size <= 1) {
-            return false
-        }
+        val handledByChild = entries.reversed().asSequence()
+            .map { entry ->
+                when (entry) {
+                    is Single -> {
+                        singleChildren[entry.entryId]
+                            .requireNotNull { Errors.entryNotFound(entry.entryId) }
+                            .backDispatcher
+                            .dispatchBackEvent()
+                    }
 
-        val handledByChild = when (val topEntry = entries.lastOrNull()) {
-            null -> false
+                    is Stack -> {
+                        val childRouter = stackChildren[entry.entryId]
+                            .requireNotNull { Errors.entryNotFound(entry.entryId) }
+                            .router
 
-            is Single -> {
-                singleChildren[topEntry.entryId]
-                    .requireNotNull { Errors.entryNotFound(topEntry.entryId) }
-                    .backDispatcher
-                    .dispatchBackEvent()
+                        when {
+                            childRouter.handleBack() -> true
+                            childRouter.children.isEmpty() -> null
+                            else -> false
+                        }
+                    }
+                }
             }
-
-            is Stack -> {
-                stackChildren[topEntry.entryId]
-                    .requireNotNull { Errors.entryNotFound(topEntry.entryId) }
-                    .router
-                    .handleBack()
-            }
-        }
+            .firstOrNull { it != null }
+            ?: false
 
         // A child has handled back event, so we don't need to do anything here
         if (handledByChild) {
@@ -148,9 +152,7 @@ sealed class BaseRouter(context: ElastikContext) {
 
         // The event has not been handled by children, therefore,
         // this router must handle it by itself
-        onHandleBack()
-
-        return true
+        return onHandleBack()
     }
 
     internal fun addSingleDestinationBinding(
@@ -328,7 +330,7 @@ sealed class BaseRouter(context: ElastikContext) {
         if (parent != null) return
 
         routingContext
-            .backEventsDispatcher
+            .globalBackDispatcher
             .subscribe(::handleBack)
     }
 

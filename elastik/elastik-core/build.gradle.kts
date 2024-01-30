@@ -43,6 +43,7 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
+                implementation(libs.turbine)
                 implementation(libs.kotlin.test)
                 implementation(libs.coroutines.test)
             }

@@ -6,11 +6,12 @@ import com.keyflare.elastik.core.routing.router.DynamicRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
 import com.keyflare.elastik.core.util.ApplyNavigationScope.RouterToNavigateWith
 
-fun BaseRouter.applyNavigation(body: ApplyNavigationScope.() -> Unit) {
+fun BaseRouter.applyNavigation(body: ApplyNavigationScope.() -> Unit): BaseRouter {
     ApplyNavigationScopeImpl(root = this).apply {
         body()
         applyNavigation()
     }
+    return this
 }
 
 interface ApplyNavigationScope {

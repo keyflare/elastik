@@ -4,7 +4,7 @@ import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.context.ElastikPlatform
 import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
-import com.keyflare.elastik.core.routing.backevents.BackEventsDispatcher
+import com.keyflare.elastik.core.routing.backevents.GlobalBackDispatcher
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.state.ElastikStateHolder
 import com.keyflare.elastik.core.state.EmptyArguments
@@ -15,7 +15,7 @@ internal interface RoutingContext {
 
     val state: ElastikStateHolder
 
-    val backEventsDispatcher: BackEventsDispatcher
+    val globalBackDispatcher: GlobalBackDispatcher
 
     fun registerRenderReceiver(receiver: RenderReceiver)
 
@@ -79,16 +79,16 @@ internal class RoutingContextImpl(
 
     private var renderReceiver: RoutingContext.RenderReceiver? = null
 
-    override val backEventsDispatcher = BackEventsDispatcher()
+    override val globalBackDispatcher = GlobalBackDispatcher()
 
     override fun registerRenderReceiver(receiver: RoutingContext.RenderReceiver) {
         renderReceiver = receiver
     }
 
     override fun attachPlatform(platform: ElastikPlatform) {
-        platform.backEventsSource.subscribe {
-            backEventsDispatcher.dispatch()
-        }
+        platform
+            .backEventsSource
+            .subscribe(globalBackDispatcher::dispatch)
     }
 
     override fun detachPlatform() {

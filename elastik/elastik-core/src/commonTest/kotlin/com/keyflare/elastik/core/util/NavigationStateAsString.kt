@@ -5,6 +5,15 @@ import com.keyflare.elastik.core.routing.router.StaticRouter
 import com.keyflare.elastik.core.state.Entry
 import com.keyflare.elastik.core.state.Single
 import com.keyflare.elastik.core.state.Stack
+import kotlin.test.assertEquals
+
+fun BaseRouter.assertAsString(expected: String) {
+    assertEquals(
+        expected = expected,
+        actual = asString(),
+        message = "Router tree as string doesn't look as expected",
+    )
+}
 
 fun BaseRouter.asString(): String {
     return stack.asString(router = this)
