@@ -4,6 +4,8 @@ import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
+import com.keyflare.elastik.core.state.EmptyArguments
+import com.keyflare.elastik.core.state.Stack
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -38,14 +40,22 @@ internal class RoutingContextTest {
     fun `Providing data for a new router test`() {
         (0 until 100).map { iteration ->
             context.routingContext.rememberNewRouterData(
-                destinationId = iteration.toString(),
-                entryId = iteration,
+                stack = Stack(
+                    destinationId = iteration.toString(),
+                    entryId = iteration,
+                    args = EmptyArguments,
+                    entries = emptyList(),
+                ),
                 parent = routerStub,
             )
             assertEquals(
                 expected = NewRouterData(
-                    destinationId = iteration.toString(),
-                    entryId = iteration,
+                    stack = Stack(
+                        destinationId = iteration.toString(),
+                        entryId = iteration,
+                        args = EmptyArguments,
+                        entries = emptyList(),
+                    ),
                     parent = routerStub,
                 ),
                 actual = context.routingContext.getNewRouterData(),
@@ -53,5 +63,4 @@ internal class RoutingContextTest {
             )
         }
     }
-
 }

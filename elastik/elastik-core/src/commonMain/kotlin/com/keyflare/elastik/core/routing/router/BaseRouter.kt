@@ -5,7 +5,6 @@ import com.keyflare.elastik.core.state.Stack
 import com.keyflare.elastik.core.state.Entry
 import com.keyflare.elastik.core.state.ElastikStateHolder
 import com.keyflare.elastik.core.state.Single
-import com.keyflare.elastik.core.state.stack
 import com.keyflare.elastik.core.state.find
 import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.Errors
@@ -28,9 +27,12 @@ sealed class BaseRouter(context: ElastikContext) {
     private val addedDestinations: MutableSet<String> = mutableSetOf()
     private var lastSyncEntries: List<EntryWrapper> = emptyList()
     private val elastikContext: ElastikContext
+    private var currentStack: Stack
 
     internal val state: ElastikStateHolder
     internal val routingContext: RoutingContext
+
+    val stack: Stack get() = currentStack
 
     val destinationId: String
 
@@ -38,25 +40,19 @@ sealed class BaseRouter(context: ElastikContext) {
 
     val parent: BaseRouter?
 
-    // TODO make not null
-    val stack: Stack? get() = state.stack(entryId)
+    val children: List<Any>
+        get() = stack.entries.mapNotNull {
+            singleChildren[it.entryId]?.component ?: stackChildren[it.entryId]?.router
+        }
 
-    // TODO make not null
-    val children: List<Any?>?
-        get() = stack?.entries
-            ?.map { singleChildren[it.entryId]?.component ?: stackChildren[it.entryId]?.router }
+    val childComponents: List<Any>
+        get() = stack.entries.mapNotNull { singleChildren[it.entryId]?.component }
 
-    // TODO make not null
-    val childComponents: List<Any?>?
-        get() = stack?.entries
-            ?.map { singleChildren[it.entryId]?.component }
-
-    // TODO make not null
-    val childRouters: List<BaseRouter?>?
-        get() = stack?.entries
-            ?.map { stackChildren[it.entryId]?.router }
+    val childRouters: List<BaseRouter>
+        get() = stack.entries.mapNotNull { stackChildren[it.entryId]?.router }
 
     // TODO make more readable (maybe value class or something)
+    //  restrict adding destinations in runtime (error or warning) and get rid of get()
     val destinations: List<String> get() = addedDestinations.toList()
 
     val singleDestinations: List<String> get() = singleDestinationBindings.map { it.key }
@@ -68,8 +64,9 @@ sealed class BaseRouter(context: ElastikContext) {
         routingContext = elastikContext.routingContext
         state = routingContext.state
         val data = routingContext.getNewRouterData()
-        destinationId = data.destinationId
-        entryId = data.entryId
+        currentStack = data.stack
+        destinationId = stack.destinationId
+        entryId = stack.entryId
         parent = data.parent
 
         setupAsRootIfAppropriate()
@@ -166,7 +163,11 @@ sealed class BaseRouter(context: ElastikContext) {
         // TODO MVP Solution!!! Refactor this
         //  (optimize and get rid of the third party diff solution)
         state.subscribeBlocking { root ->
-            val newEntries = root.extractAssociatedEntries() ?: return@subscribeBlocking
+            val (updatedStack, newEntries) = root.extractAssociatedEntries()
+            if (updatedStack == null || newEntries == null) {
+                return@subscribeBlocking
+            }
+            currentStack = updatedStack
             val oldEntries = lastSyncEntries
             lastSyncEntries = newEntries
 
@@ -174,15 +175,15 @@ sealed class BaseRouter(context: ElastikContext) {
         }
     }
 
-    private fun Stack.extractAssociatedEntries(): List<EntryWrapper>? {
-        return find { it.entryId == this@BaseRouter.entryId }
-            ?.castOrError<Stack> {
-                Errors.entryUnexpectedType(
-                    entryId = this.entryId,
-                    stackExpected = true
-                )
-            }
-            ?.entries
+    private fun Stack.extractAssociatedEntries(): Pair<Stack?, List<EntryWrapper>?> {
+        val stack = find { it.entryId == this@BaseRouter.entryId }?.castOrError<Stack> {
+            Errors.entryUnexpectedType(
+                entryId = this.entryId,
+                stackExpected = true
+            )
+        }
+
+        return stack to stack?.entries
             ?.map {
                 // Ignore entries inside child stack when comparing
                 EntryWrapper(
@@ -219,57 +220,56 @@ sealed class BaseRouter(context: ElastikContext) {
         )
     }
 
-    private fun onInsertSingleEntry(entry: Single) {
+    private fun onInsertSingleEntry(newSingle: Single) {
         @Suppress("ReplaceGetOrSet")
         val destinationBinding = singleDestinationBindings
-            .get(entry.destinationId)
+            .get(newSingle.destinationId)
             .requireNotNull {
                 Errors.destinationBindingNotFound(
-                    destinationId = entry.destinationId,
+                    destinationId = newSingle.destinationId,
                     isSingle = true,
                 )
             }
         val backController = BackControllerImpl()
         val component = destinationBinding.componentFactory(backController)
 
-        singleChildren[entry.entryId] = Child.SingleChild(
-            entry = entry,
+        singleChildren[newSingle.entryId] = Child.SingleChild(
+            entry = newSingle,
             backDispatcher = backController,
             component = component,
         )
 
         routingContext.sendSingleRender(
-            entryId = entry.entryId,
+            entryId = newSingle.entryId,
             render = destinationBinding.renderFactory(component),
         )
     }
 
-    private fun onInsertStackEntry(entry: Stack) {
+    private fun onInsertStackEntry(newStack: Stack) {
         @Suppress("ReplaceGetOrSet")
         val destinationBinding = stackDestinationBindings
-            .get(entry.destinationId)
+            .get(newStack.destinationId)
             .requireNotNull {
                 Errors.destinationBindingNotFound(
-                    destinationId = entry.destinationId,
+                    destinationId = newStack.destinationId,
                     isSingle = false,
                 )
             }
 
         routingContext.rememberNewRouterData(
-            destinationId = entry.destinationId,
-            entryId = entry.entryId,
+            stack = newStack,
             parent = this,
         )
         val router = destinationBinding.routerFactory(elastikContext)
         routingContext.clearNewRouterData()
 
-        stackChildren[entry.entryId] = Child.StackChild(
-            entry = entry,
+        stackChildren[newStack.entryId] = Child.StackChild(
+            entry = newStack,
             router = router,
         )
 
         routingContext.sendStackRender(
-            entryId = entry.entryId,
+            entryId = newStack.entryId,
             render = destinationBinding.renderFactory(router)
         )
     }

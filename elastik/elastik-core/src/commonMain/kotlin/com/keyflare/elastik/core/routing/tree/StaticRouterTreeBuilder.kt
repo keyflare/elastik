@@ -79,7 +79,7 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
         addSingleDestinationBinding(destinationId, componentFactory, renderFactoryImpl)
 
         val addEntryTransformation = StackTransformation(
-            entryId = stack?.entryId ?: error(Errors.noStackAssociated(entryId)),
+            entryId = stack.entryId,
             transformation = { entries ->
                 val newEntry = Single(
                     entryId = routingContext.obtainNewEntryId(),
@@ -129,7 +129,7 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
         addStackDestinationBinding(destinationId, routerFactory, renderFactoryImpl)
 
         val addEntryTransformation = StackTransformation(
-            entryId = stack?.entryId ?: error(Errors.noStackAssociated(entryId)),
+            entryId = stack.entryId,
             transformation = { entries ->
                 val newEntry = Stack(
                     entryId = routingContext.obtainNewEntryId(),

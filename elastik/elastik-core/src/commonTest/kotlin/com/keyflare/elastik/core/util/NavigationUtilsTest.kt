@@ -39,14 +39,14 @@ class NavigationUtilsTest {
         val root = elastikContext.createDynamicRoot {
             single()
         }
-        assertTrue { root.children!!.isEmpty() }
+        assertTrue { root.children.isEmpty() }
         root.applyNavigation {
             router("root") navigate "A"
         }
 
         assertTrue {
-            val onlyOneChildren = root.children!!.size == 1
-            val hasEntryA = root.children!![0]!!.cast<TestScreenComponent>().destinationId == "A"
+            val onlyOneChildren = root.children.size == 1
+            val hasEntryA = root.children[0].cast<TestScreenComponent>().destinationId == "A"
             onlyOneChildren && hasEntryA
         }
     }
@@ -89,19 +89,19 @@ class NavigationUtilsTest {
             router("D") navigate "E"
         }
 
-        val rootChildren = root.children!!
-        val b = rootChildren[2]!!.cast<TestDynamicRouter>()
-        val bChildren = b.children!!
-        val d = bChildren[1]!!.cast<TestDynamicRouter>()
-        val dChildren = d.children!!
-        val f = bChildren[0]!!.cast<TestStaticRouter>()
+        val rootChildren = root.children
+        val b = rootChildren[2].cast<TestDynamicRouter>()
+        val bChildren = b.children
+        val d = bChildren[1].cast<TestDynamicRouter>()
+        val dChildren = d.children
+        val f = bChildren[0].cast<TestStaticRouter>()
 
-        rootChildren[0]!!.check(dstId = "A", single = true)
-        rootChildren[1]!!.check(dstId = "A", single = true)
+        rootChildren[0].check(dstId = "A", single = true)
+        rootChildren[1].check(dstId = "A", single = true)
         b.check(dstId = "B", single = false, static = false)
         f.check(dstId = "F", single = false, static = true)
         d.check(dstId = "D", single = false, static = false)
-        dChildren[0]!!.check(dstId = "E", single = true)
+        dChildren[0].check(dstId = "E", single = true)
     }
 
     private fun Any.check(

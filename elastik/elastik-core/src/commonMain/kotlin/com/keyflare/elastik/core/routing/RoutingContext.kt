@@ -7,6 +7,8 @@ import com.keyflare.elastik.core.render.SingleRender
 import com.keyflare.elastik.core.routing.backevents.BackEventsDispatcher
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.state.ElastikStateHolder
+import com.keyflare.elastik.core.state.EmptyArguments
+import com.keyflare.elastik.core.state.Stack
 
 // TODO ability to get path for every destination by id
 internal interface RoutingContext {
@@ -38,8 +40,7 @@ internal interface RoutingContext {
     fun onStackDestroyed(entryId: Int)
 
     fun rememberNewRouterData(
-        destinationId: String,
-        entryId: Int,
+        stack: Stack,
         parent: BaseRouter,
     )
 
@@ -122,13 +123,11 @@ internal class RoutingContextImpl(
     }
 
     override fun rememberNewRouterData(
-        destinationId: String,
-        entryId: Int,
+        stack: Stack,
         parent: BaseRouter,
     ) {
         dataForNewRouter = NewRouterData(
-            destinationId = destinationId,
-            entryId = entryId,
+            stack = stack,
             parent = parent,
         )
     }
@@ -147,13 +146,16 @@ internal class RoutingContextImpl(
 }
 
 internal data class NewRouterData(
-    val destinationId: String,
-    val entryId: Int,
+    val stack: Stack,
     val parent: BaseRouter?,
 )
 
 internal val ROOT_ROUTER_DATA = NewRouterData(
-    destinationId = "root",
-    entryId = -1,
+    stack = Stack(
+        entryId = -1,
+        destinationId = "root",
+        args = EmptyArguments,
+        entries = emptyList(),
+    ),
     parent = null,
 )

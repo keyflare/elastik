@@ -53,7 +53,7 @@ private class ApplyNavigationScopeImpl(
                 router = r
                 break
             }
-            routers = routers.flatMap { it.childRouters!!.filterNotNull() }
+            routers = routers.flatMap { it.childRouters }
         }
 
         when (router) {

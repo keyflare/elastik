@@ -7,7 +7,7 @@ import com.keyflare.elastik.core.state.Single
 import com.keyflare.elastik.core.state.Stack
 
 fun BaseRouter.asString(): String {
-    return stack!!.asString(router = this)
+    return stack.asString(router = this)
 }
 
 private fun Entry.asString(router: BaseRouter?): String {
@@ -21,7 +21,6 @@ private fun Entry.asString(router: BaseRouter?): String {
                         .requireNotNull()
                         .childRouters
                         .requireNotNull()
-                        .filterNotNull()
                         .find { it.entryId == entry.entryId }
                 } else {
                     null

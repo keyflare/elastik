@@ -54,29 +54,28 @@ class RouterTreeBuilderDslTest {
 
         // Let's check if the actual structure is correct
 
-        root.children!![0]!!.check(dstId = "A", single = true)
-        root.children!![3]!!.check(dstId = "J", single = true)
+        root.children[0].check(dstId = "A", single = true)
+        root.children[3].check(dstId = "J", single = true)
 
-        root.children!![1]!!.let { rootChild ->
+        root.children[1].let { rootChild ->
             rootChild.check(dstId = "B", single = false, static = true)
-            rootChild.cast<BaseRouter>().children!![0]!!.check(dstId = "C", single = true)
+            rootChild.cast<BaseRouter>().children[0].check(dstId = "C", single = true)
 
-            rootChild.children!![1]!!.let {
+            rootChild.children[1].let {
                it.check(dstId = "D", single = false, static = true)
-               assertTrue { it.cast<BaseRouter>().children!!.isEmpty() }
+               assertTrue { it.cast<BaseRouter>().children.isEmpty() }
             }
 
-            rootChild.children!![2]!!.let {
+            rootChild.children[2].let {
                 it.check(dstId = "E", single = false, static = true)
-                it.cast<BaseRouter>().children!![0]!!.check(dstId = "F", single = true)
+                it.cast<BaseRouter>().children[0].check(dstId = "F", single = true)
             }
         }
 
-        root.children!![2]!!.let { rootChild ->
+        root.children[2].let { rootChild ->
             rootChild.check(dstId = "G", single = false, static = false)
             assertTrue(message = "Dynamic router must not have entries right after initiation") {
-                println("!!! ${rootChild.cast<BaseRouter>().children}")
-                rootChild.cast<BaseRouter>().children!!.isEmpty()
+                rootChild.cast<BaseRouter>().children.isEmpty()
             }
         }
     }
