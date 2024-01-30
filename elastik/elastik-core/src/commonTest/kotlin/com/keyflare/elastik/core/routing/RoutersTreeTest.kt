@@ -5,6 +5,8 @@ import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
+import com.keyflare.elastik.core.util.applyNavigation
+import com.keyflare.elastik.core.util.createStaticRoot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -25,15 +27,16 @@ internal class RoutersTreeTest {
         Dispatchers.setMain(StandardTestDispatcher())
     }
 
-    private lateinit var root: RootRouter
+    private var elastikContext: ElastikContext = ElastikContext.create(NoRender)
 
     @BeforeTest
     fun beforeEach() {
-        root = RootRouter(ElastikContext.create(NoRender))
+        elastikContext = ElastikContext.create(NoRender)
     }
 
     @Test
     fun `Synchronicity of navigation test`() = runTest {
+        val root = RootRouter(elastikContext)
         assertEquals(
             expected = RootRouter(ElastikContext.create(NoRender)).mainRouter.router.destinationId,
             actual = root.mainRouter.destination.destinationId,
@@ -73,6 +76,7 @@ internal class RoutersTreeTest {
 
     @Test
     fun `NewRouterData cleared correctly test`() {
+        val root = RootRouter(elastikContext)
         assertNull(
             actual = runCatching { root.routingContext.getNewRouterData() }.getOrNull(),
             message = "NewRouterData was not cleared after routers tree created",
@@ -89,6 +93,7 @@ internal class RoutersTreeTest {
 
     @Test
     fun `Router tree parents test`() {
+        val root = RootRouter(elastikContext)
         val mainRouter = root.mainRouter.router
         val dialogRouter = root.dialogRouter.router
         val bottomSheetRouter = root.bottomSheetRouter.router
@@ -121,64 +126,113 @@ internal class RoutersTreeTest {
 
         assertFails {
             object : StaticRouter(ElastikContext.create(NoRender)) {
-                val a = singleNoArgs(
-                    destinationId = destinationId,
-                    renderFactory = { NoRender },
-                    componentFactory = { ComponentStub() },
-                )
-                val b = singleNoArgs(
-                    destinationId = destinationId,
-                    renderFactory = { NoRender },
-                    componentFactory = { ComponentStub() },
-                )
+                init {
+                    singleNoArgs(
+                        destinationId = destinationId,
+                        renderFactory = { NoRender },
+                        componentFactory = { ComponentStub() },
+                    )
+                    singleNoArgs(
+                        destinationId = destinationId,
+                        renderFactory = { NoRender },
+                        componentFactory = { ComponentStub() },
+                    )
+                }
             }
         }
         assertFails {
             object : StaticRouter(ElastikContext.create(NoRender)) {
-                val a = single(
-                    destinationId = destinationId,
-                    args = ArgsStub(),
-                    renderFactory = { NoRender },
-                    componentFactory = { ComponentStub() },
-                )
-                val b = single(
-                    destinationId = destinationId,
-                    args = ArgsStub(),
-                    renderFactory = { NoRender },
-                    componentFactory = { ComponentStub() },
-                )
+                init {
+                    single(
+                        destinationId = destinationId,
+                        args = ArgsStub(),
+                        renderFactory = { NoRender },
+                        componentFactory = { ComponentStub() },
+                    )
+                    single(
+                        destinationId = destinationId,
+                        args = ArgsStub(),
+                        renderFactory = { NoRender },
+                        componentFactory = { ComponentStub() },
+                    )
+                }
             }
         }
         assertFails {
             object : StaticRouter(ElastikContext.create(NoRender)) {
-                val a = stackNoArgs(
-                    destinationId = destinationId,
-                    renderFactory = { NoRender },
-                    routerFactory = { MainRouter(it) },
-                )
-                val b = stackNoArgs(
-                    destinationId = destinationId,
-                    renderFactory = { NoRender },
-                    routerFactory = { MainRouter(it) },
-                )
+                init {
+                    stackNoArgs(
+                        destinationId = destinationId,
+                        renderFactory = { NoRender },
+                        routerFactory = { MainRouter(it) },
+                    )
+                    stackNoArgs(
+                        destinationId = destinationId,
+                        renderFactory = { NoRender },
+                        routerFactory = { MainRouter(it) },
+                    )
+                }
             }
         }
         assertFails {
             object : StaticRouter(ElastikContext.create(NoRender)) {
-                val a = stack(
-                    destinationId = destinationId,
-                    args = ArgsStub(),
-                    renderFactory = { NoRender },
-                    routerFactory = { MainRouter(it) },
-                )
-                val b = stack(
-                    destinationId = destinationId,
-                    args = ArgsStub(),
-                    renderFactory = { NoRender },
-                    routerFactory = { MainRouter(it) },
-                )
+                init {
+                    stack(
+                        destinationId = destinationId,
+                        args = ArgsStub(),
+                        renderFactory = { NoRender },
+                        routerFactory = { MainRouter(it) },
+                    )
+                    stack(
+                        destinationId = destinationId,
+                        args = ArgsStub(),
+                        renderFactory = { NoRender },
+                        routerFactory = { MainRouter(it) },
+                    )
+                }
             }
         }
+    }
+
+    @Test
+    fun `root finding test`() {
+        val root = elastikContext
+            .createStaticRoot {
+                single() // A
+                dynamic { // B
+                    single() // C
+                    static { // D
+                        dynamic { // E
+                            single() // F
+                        }
+                        dynamic { // G
+                            single() // H
+                        }
+                    }
+                    dynamic { // I
+                        single() // J
+                    }
+                }
+            }
+            .apply {
+                applyNavigation {
+                    router("B") navigate "D"
+                    router("B") navigate "I"
+                }
+            }
+
+        val routerB = root.childRouters.first { it.destinationId == "B" }
+        val routerD = routerB.childRouters.first { it.destinationId == "D" }
+        val routerI = routerB.childRouters.first { it.destinationId == "I" }
+        val routerE = routerD.childRouters.first { it.destinationId == "E" }
+        val routerG = routerD.childRouters.first { it.destinationId == "G" }
+
+        assertEquals(root, root.root())
+        assertEquals(root, routerB.root())
+        assertEquals(root, routerD.root())
+        assertEquals(root, routerI.root())
+        assertEquals(root, routerE.root())
+        assertEquals(root, routerG.root())
     }
 }
 

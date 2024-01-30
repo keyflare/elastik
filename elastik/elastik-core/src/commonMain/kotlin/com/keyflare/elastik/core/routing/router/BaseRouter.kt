@@ -78,6 +78,11 @@ sealed class BaseRouter(context: ElastikContext) {
         routingContext.backEventsDispatcher.dispatch()
     }
 
+    tailrec fun root(): BaseRouter = when (parent) {
+        null -> this
+        else -> parent.root()
+    }
+
     protected open fun onHandleBack() {
         // Do nothing by default
     }
