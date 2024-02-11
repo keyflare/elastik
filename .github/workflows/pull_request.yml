@@ -1,0 +1,22 @@
+name: PR Build
+on: [ pull_request, workflow_dispatch ]
+
+jobs:
+  macos-build:
+    name: Build
+    runs-on: macos-14
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Gradle Build
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          arguments: build
