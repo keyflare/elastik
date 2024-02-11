@@ -33,7 +33,7 @@ sealed class BaseRouter(context: ElastikContext) {
     internal val state: ElastikStateHolder
     internal val routingContext: RoutingContext
 
-    val stack: Stack get() = Stack(0, EmptyArguments, "", emptyList()) //currentStack
+    val stack: Stack get() = currentStack
 
     val destinationId: String
 
