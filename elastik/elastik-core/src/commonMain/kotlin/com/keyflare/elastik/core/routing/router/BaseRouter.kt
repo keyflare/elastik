@@ -16,6 +16,7 @@ import com.keyflare.elastik.core.util.requireNotNull
 import com.keyflare.elastik.core.routing.diff.differenceOf
 import com.keyflare.elastik.core.routing.router.BaseRouter.DestinationBinding.SingleDestinationBinding
 import com.keyflare.elastik.core.routing.router.BaseRouter.DestinationBinding.StackDestinationBinding
+import com.keyflare.elastik.core.state.EmptyArguments
 
 // TODO maybe create an interface
 sealed class BaseRouter(context: ElastikContext) {
@@ -32,7 +33,7 @@ sealed class BaseRouter(context: ElastikContext) {
     internal val state: ElastikStateHolder
     internal val routingContext: RoutingContext
 
-    val stack: Stack get() = currentStack
+    val stack: Stack get() = Stack(0, EmptyArguments, "", emptyList()) //currentStack
 
     val destinationId: String
 
