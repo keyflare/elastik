@@ -1,12 +1,12 @@
-package com.keyflare.elastik.core.util
+package com.keyflare.elastik.core.setup.tree
 
 import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.DynamicRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
-import com.keyflare.elastik.core.util.component.TestScreenComponent
-import com.keyflare.elastik.core.util.component.TestScreenComponentsReporter
+import com.keyflare.elastik.core.setup.component.TestScreenComponent
+import com.keyflare.elastik.core.setup.component.TestScreenComponentsReporter
 
 fun ElastikContext.createStaticRoot(
     testScreenComponentsReporter: TestScreenComponentsReporter = TestScreenComponentsReporter(),

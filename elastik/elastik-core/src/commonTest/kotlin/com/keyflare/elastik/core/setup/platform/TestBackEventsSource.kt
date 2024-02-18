@@ -1,4 +1,4 @@
-package com.keyflare.elastik.core.util.platform
+package com.keyflare.elastik.core.setup.platform
 
 import com.keyflare.elastik.core.context.BackEventsSource
 import kotlinx.coroutines.CoroutineScope

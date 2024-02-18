@@ -1,11 +1,16 @@
-package com.keyflare.elastik.core.util
+package com.keyflare.elastik.core.setup.navigation
 
 import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.DynamicRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
-import com.keyflare.elastik.core.util.component.TestScreenComponent
+import com.keyflare.elastik.core.setup.tree.TestDynamicRouter
+import com.keyflare.elastik.core.setup.tree.TestStaticRouter
+import com.keyflare.elastik.core.util.cast
+import com.keyflare.elastik.core.setup.component.TestScreenComponent
+import com.keyflare.elastik.core.setup.tree.createDynamicRoot
+import com.keyflare.elastik.core.setup.tree.createStaticRoot
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

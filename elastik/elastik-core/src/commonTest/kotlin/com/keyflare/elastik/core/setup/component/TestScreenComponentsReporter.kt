@@ -1,4 +1,4 @@
-package com.keyflare.elastik.core.util.component
+package com.keyflare.elastik.core.setup.component
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

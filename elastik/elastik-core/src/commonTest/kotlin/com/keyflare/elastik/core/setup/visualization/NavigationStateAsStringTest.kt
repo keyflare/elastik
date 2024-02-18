@@ -1,7 +1,10 @@
-package com.keyflare.elastik.core.util
+package com.keyflare.elastik.core.setup.visualization
 
 import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.render.NoRender
+import com.keyflare.elastik.core.setup.navigation.applyNavigation
+import com.keyflare.elastik.core.setup.tree.createDynamicRoot
+import com.keyflare.elastik.core.setup.tree.createStaticRoot
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

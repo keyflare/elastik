@@ -6,9 +6,9 @@ import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.ROOT_ROUTER_DATA
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
-import com.keyflare.elastik.core.util.applyNavigation
-import com.keyflare.elastik.core.util.createDynamicRoot
-import com.keyflare.elastik.core.util.createStaticRoot
+import com.keyflare.elastik.core.setup.navigation.applyNavigation
+import com.keyflare.elastik.core.setup.tree.createDynamicRoot
+import com.keyflare.elastik.core.setup.tree.createStaticRoot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher

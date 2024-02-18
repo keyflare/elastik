@@ -1,15 +1,9 @@
 package com.keyflare.elastik.core.routing.lifecycle
 
-import com.keyflare.elastik.core.context.ElastikContext
-import com.keyflare.elastik.core.render.NoRender
-import com.keyflare.elastik.core.util.applyNavigation
-import com.keyflare.elastik.core.util.assertAsString
-import com.keyflare.elastik.core.util.cast
-import com.keyflare.elastik.core.util.component.TestScreenComponentEvent.LifecycleEventReceived
-import com.keyflare.elastik.core.util.component.TestScreenComponentsReporter
-import com.keyflare.elastik.core.util.createStaticRoot
-import com.keyflare.elastik.core.util.platform.TestLifecycleEventsSource
-import com.keyflare.elastik.core.util.platform.createTestPlatform
+import com.keyflare.elastik.core.setup.navigation.applyNavigation
+import com.keyflare.elastik.core.setup.visualization.assertAsString
+import com.keyflare.elastik.core.setup.component.TestScreenComponentEvent.LifecycleEventReceived
+import com.keyflare.elastik.core.setup.platform.TestPlatform
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlin.test.BeforeTest
@@ -20,25 +14,16 @@ import kotlin.test.assertEquals
 class LifecycleTest {
 
     private val scope = GlobalScope
-    private var elastikContext = ElastikContext.create(NoRender)
-    private val testPlatform = createTestPlatform(scope)
-    private var testScreenComponentsReporter = TestScreenComponentsReporter()
-
-    private val lifecycleEventsSource = testPlatform
-        .lifecycleEventsSource
-        .cast<TestLifecycleEventsSource>()
+    private var testPlatform = TestPlatform(scope)
 
     @BeforeTest
     fun beforeEach() {
-        testScreenComponentsReporter = TestScreenComponentsReporter()
-        elastikContext = ElastikContext
-            .create(NoRender)
-            .apply { attachPlatform(testPlatform) }
+        testPlatform = TestPlatform(scope)
     }
 
     @Test
     fun `lifecycle events dispatching test`() {
-        elastikContext.createStaticRoot(testScreenComponentsReporter) {
+        testPlatform.createStaticRoot {
             single() // A
             static { // B
                 static {  // C
@@ -71,9 +56,9 @@ class LifecycleTest {
             LifecycleEvent.DESTROYED,
         )
             .forEach { event ->
-                lifecycleEventsSource.fireEvent(event)
+                testPlatform.lifecycleEventsSource.fireEvent(event)
                 assertLifecycleCallbackReceived(destinationIds, event)
-                testScreenComponentsReporter.clear()
+                testPlatform.testScreenComponentsReporter.clear()
             }
     }
 
@@ -81,7 +66,8 @@ class LifecycleTest {
         destinationIds: List<String>,
         event: LifecycleEvent,
     ) {
-        testScreenComponentsReporter.allEvents
+        testPlatform.testScreenComponentsReporter
+            .allEvents
             .filterIsInstance<LifecycleEventReceived>()
             .filter { it.lifecycleEvent == event }
             .map { it.destinationId }

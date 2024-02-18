@@ -1,8 +1,8 @@
-package com.keyflare.elastik.core.util.component
+package com.keyflare.elastik.core.setup.component
 
 import com.keyflare.elastik.core.routing.lifecycle.LifecycleEvent
 import com.keyflare.elastik.core.routing.router.ComponentContext
-import com.keyflare.elastik.core.util.component.TestScreenComponentEvent.LifecycleEventReceived
+import com.keyflare.elastik.core.setup.component.TestScreenComponentEvent.LifecycleEventReceived
 
 @Suppress("MemberVisibilityCanBePrivate")
 class TestScreenComponent(

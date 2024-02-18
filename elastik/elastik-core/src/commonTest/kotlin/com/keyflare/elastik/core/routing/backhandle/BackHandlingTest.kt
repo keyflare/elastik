@@ -1,15 +1,9 @@
 package com.keyflare.elastik.core.routing.backhandle
 
 import app.cash.turbine.test
-import com.keyflare.elastik.core.context.ElastikContext
-import com.keyflare.elastik.core.render.NoRender
-import com.keyflare.elastik.core.util.applyNavigation
-import com.keyflare.elastik.core.util.assertAsString
-import com.keyflare.elastik.core.util.cast
-import com.keyflare.elastik.core.util.createDynamicRoot
-import com.keyflare.elastik.core.util.createStaticRoot
-import com.keyflare.elastik.core.util.platform.TestBackEventsSource
-import com.keyflare.elastik.core.util.platform.createTestPlatform
+import com.keyflare.elastik.core.setup.navigation.applyNavigation
+import com.keyflare.elastik.core.setup.visualization.assertAsString
+import com.keyflare.elastik.core.setup.platform.TestPlatform
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
@@ -22,20 +16,17 @@ import kotlin.time.Duration.Companion.seconds
 class BackHandlingTest {
 
     private val scope = GlobalScope
-    private var elastikContext = ElastikContext.create(NoRender)
-    private val testPlatform = createTestPlatform(scope)
-    private val backEventsSource = testPlatform.backEventsSource.cast<TestBackEventsSource>()
+    private var testPlatform = TestPlatform(scope)
+    private val backEventsSource get() = testPlatform.backEventsSource
 
     @BeforeTest
     fun beforeEach() {
-        elastikContext = ElastikContext
-            .create(NoRender)
-            .apply { attachPlatform(testPlatform) }
+        testPlatform = TestPlatform(scope)
     }
 
     @Test
     fun `back when empty static root stack`() = runBlocking {
-        elastikContext.createStaticRoot {}
+        testPlatform.createStaticRoot {}
 
         backEventsSource.handleResultFlow().test(timeout = 1.seconds) {
             backEventsSource.fireEvent()
@@ -45,7 +36,7 @@ class BackHandlingTest {
 
     @Test
     fun `back when static root stack has two screens`() = runBlocking {
-        val root = elastikContext.createStaticRoot {
+        val root = testPlatform.createStaticRoot {
             single()
         }
 
@@ -60,7 +51,7 @@ class BackHandlingTest {
 
     @Test
     fun `back when empty dynamic root stack`() = runBlocking {
-        elastikContext.createDynamicRoot {}
+        testPlatform.createDynamicRoot {}
 
         backEventsSource.handleResultFlow().test(timeout = 1.seconds) {
             backEventsSource.fireEvent()
@@ -70,7 +61,7 @@ class BackHandlingTest {
 
     @Test // root(A-B)
     fun `back when dynamic root stack has two screens`() = runBlocking {
-        val root = elastikContext
+        val root = testPlatform
             .createDynamicRoot {
                 single() // A
                 single() // B
@@ -94,7 +85,7 @@ class BackHandlingTest {
 
     @Test // root(A-B(C-D)-E)
     fun `back when dynamic stack in the middle`() = runBlocking {
-        val root = elastikContext
+        val root = testPlatform
             .createDynamicRoot {
                 single() // A
                 dynamic { // B
@@ -133,7 +124,7 @@ class BackHandlingTest {
 
     @Test // root*(A(B-C)-D(E-F))
     fun `back when static root and dynamic stack in the middle`() = runBlocking {
-        val root = elastikContext
+        val root = testPlatform
             .createStaticRoot {
                 dynamic { // A
                     single() // B
@@ -173,7 +164,7 @@ class BackHandlingTest {
 
     @Test // root*(A(B-C)-D(E-F))
     fun `back when dynamic root and two static stacks in it`() = runBlocking {
-        val root = elastikContext
+        val root = testPlatform
             .createDynamicRoot {
                 dynamic { // A
                     single() // B
@@ -215,7 +206,7 @@ class BackHandlingTest {
 
     @Test // root(A-B*(C(D-E))-F)
     fun `back when dynamic root and static stack in the middle`() = runBlocking {
-        val root = elastikContext
+        val root = testPlatform
             .createDynamicRoot {
                 single() // A
                 static { // B
@@ -256,7 +247,7 @@ class BackHandlingTest {
 
     @Test // root(A-B(*C(D(E)))-F)
     fun `back when dynamic in static in dynamic`() = runBlocking {
-        val root = elastikContext
+        val root = testPlatform
             .createDynamicRoot {
                 single() // A
                 dynamic { // B
@@ -294,7 +285,7 @@ class BackHandlingTest {
 
     @Test // root*(A*(B))
     fun `back when static with one single in static`() = runBlocking {
-        val root = elastikContext.createStaticRoot {
+        val root = testPlatform.createStaticRoot {
             static { // A
                 single() // B
             }

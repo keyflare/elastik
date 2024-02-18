@@ -1,10 +1,11 @@
-package com.keyflare.elastik.core.util
+package com.keyflare.elastik.core.setup.visualization
 
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
 import com.keyflare.elastik.core.state.Entry
 import com.keyflare.elastik.core.state.Single
 import com.keyflare.elastik.core.state.Stack
+import com.keyflare.elastik.core.util.requireNotNull
 import kotlin.test.assertEquals
 
 fun BaseRouter.assertAsString(expected: String) {

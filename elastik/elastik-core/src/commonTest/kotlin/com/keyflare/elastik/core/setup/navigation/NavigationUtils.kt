@@ -1,10 +1,10 @@
-package com.keyflare.elastik.core.util
+package com.keyflare.elastik.core.setup.navigation
 
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.Destination
 import com.keyflare.elastik.core.routing.router.DynamicRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
-import com.keyflare.elastik.core.util.ApplyNavigationScope.RouterToNavigateWith
+import com.keyflare.elastik.core.setup.navigation.ApplyNavigationScope.RouterToNavigateWith
 
 fun BaseRouter.applyNavigation(body: ApplyNavigationScope.() -> Unit): BaseRouter {
     ApplyNavigationScopeImpl(root = this).apply {
