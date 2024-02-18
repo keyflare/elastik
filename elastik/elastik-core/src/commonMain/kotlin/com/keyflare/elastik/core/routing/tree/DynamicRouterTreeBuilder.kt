@@ -9,7 +9,7 @@ import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
-import com.keyflare.elastik.core.routing.router.BackHandler
+import com.keyflare.elastik.core.routing.router.ComponentContext
 
 abstract class DynamicStackDestination<Args : Arguments, Router : BaseRouter>(
     val destination: Destination<Args>,
@@ -29,13 +29,13 @@ interface DynamicRouterTreeBuilder {
 
     fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        componentFactory: (BackHandler) -> Component,
+        componentFactory: (ComponentContext) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<EmptyArguments, Component>
 
     fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
-        componentFactory: (BackHandler) -> Component,
+        componentFactory: (ComponentContext) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<Args, Component>
 
@@ -56,7 +56,7 @@ internal class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
 
     override fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        componentFactory: (BackHandler) -> Component,
+        componentFactory: (ComponentContext) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<EmptyArguments, Component> {
         return single(destinationId, componentFactory, renderFactory)
@@ -64,7 +64,7 @@ internal class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
 
     override fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
-        componentFactory: (BackHandler) -> Component,
+        componentFactory: (ComponentContext) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): DynamicSingleDestination<Args, Component> {
 

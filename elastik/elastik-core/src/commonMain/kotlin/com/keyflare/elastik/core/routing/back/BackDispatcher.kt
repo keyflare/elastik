@@ -1,6 +1,6 @@
-package com.keyflare.elastik.core.routing.backevents
+package com.keyflare.elastik.core.routing.back
 
-internal class GlobalBackDispatcher {
+internal class BackDispatcher {
 
     private var callback: (() -> Boolean)? = null
 

@@ -5,6 +5,7 @@ import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.DynamicRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
+import com.keyflare.elastik.core.util.component.TestScreenComponent
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

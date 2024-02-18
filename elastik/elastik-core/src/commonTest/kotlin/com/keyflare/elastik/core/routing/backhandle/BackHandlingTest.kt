@@ -1,5 +1,3 @@
-@file:OptIn(DelicateCoroutinesApi::class)
-
 package com.keyflare.elastik.core.routing.backhandle
 
 import app.cash.turbine.test
@@ -10,6 +8,8 @@ import com.keyflare.elastik.core.util.assertAsString
 import com.keyflare.elastik.core.util.cast
 import com.keyflare.elastik.core.util.createDynamicRoot
 import com.keyflare.elastik.core.util.createStaticRoot
+import com.keyflare.elastik.core.util.platform.TestBackEventsSource
+import com.keyflare.elastik.core.util.platform.createTestPlatform
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
@@ -18,11 +18,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(DelicateCoroutinesApi::class)
 class BackHandlingTest {
 
     private val scope = GlobalScope
     private var elastikContext = ElastikContext.create(NoRender)
-    private val testPlatform = createBackHandlingTestPlatform(scope)
+    private val testPlatform = createTestPlatform(scope)
     private val backEventsSource = testPlatform.backEventsSource.cast<TestBackEventsSource>()
 
     @BeforeTest

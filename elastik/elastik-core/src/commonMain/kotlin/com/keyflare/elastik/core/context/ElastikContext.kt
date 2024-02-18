@@ -20,10 +20,6 @@ class ElastikContext private constructor(
         routingContext.attachPlatform(platform)
     }
 
-    internal fun detachPlatform() {
-        routingContext.detachPlatform()
-    }
-
     private class RenderReceiverImpl(
         private val renderContext: RenderContext,
     ) : RoutingContext.RenderReceiver {

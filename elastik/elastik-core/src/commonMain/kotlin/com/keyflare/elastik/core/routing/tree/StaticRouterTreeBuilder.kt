@@ -11,8 +11,8 @@ import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
-import com.keyflare.elastik.core.routing.router.BackHandler
 import com.keyflare.elastik.core.routing.router.BaseRouter
+import com.keyflare.elastik.core.routing.router.ComponentContext
 import com.keyflare.elastik.core.routing.router.Destination
 import com.keyflare.elastik.core.util.requireNotNull
 
@@ -32,14 +32,14 @@ interface StaticRouterTreeBuilder {
 
     fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        componentFactory: (BackHandler) -> Component,
+        componentFactory: (ComponentContext) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<EmptyArguments, Component>
 
     fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
         args: Args,
-        componentFactory: (BackHandler) -> Component,
+        componentFactory: (ComponentContext) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<Args, Component>
 
@@ -61,7 +61,7 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
 
     override fun <Component : Any> BaseRouter.singleNoArgs(
         destinationId: String,
-        componentFactory: (BackHandler) -> Component,
+        componentFactory: (ComponentContext) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<EmptyArguments, Component> {
         return single(destinationId, EmptyArguments, componentFactory, renderFactory)
@@ -70,7 +70,7 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
     override fun <Args : Arguments, Component : Any> BaseRouter.single(
         destinationId: String,
         args: Args,
-        componentFactory: (BackHandler) -> Component,
+        componentFactory: (ComponentContext) -> Component,
         renderFactory: (Component) -> SingleRender,
     ): StaticSingleDestination<Args, Component> {
 

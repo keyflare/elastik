@@ -1,23 +1,12 @@
-package com.keyflare.elastik.core.routing.backhandle
+package com.keyflare.elastik.core.util.platform
 
 import com.keyflare.elastik.core.context.BackEventsSource
-import com.keyflare.elastik.core.context.ElastikPlatform
-import com.keyflare.elastik.core.context.LifecycleEventsSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-
-internal fun createBackHandlingTestPlatform(scope: CoroutineScope) = ElastikPlatform(
-    lifecycleEventsSource = LifecycleEventsSourceStub(),
-    backEventsSource = TestBackEventsSource(scope),
-)
-
-private class LifecycleEventsSourceStub : LifecycleEventsSource {
-    override fun subscribe(callback: (LifecycleEventsSource.LifecycleEvent) -> Boolean) = Unit
-}
 
 internal class TestBackEventsSource(private val scope: CoroutineScope) : BackEventsSource {
     private val events = MutableSharedFlow<Unit>()

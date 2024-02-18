@@ -11,9 +11,11 @@ import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
 import com.keyflare.elastik.core.routing.RoutingContext
+import com.keyflare.elastik.core.routing.back.BackHandlerImpl
 import com.keyflare.elastik.core.util.castOrError
 import com.keyflare.elastik.core.util.requireNotNull
 import com.keyflare.elastik.core.routing.diff.differenceOf
+import com.keyflare.elastik.core.routing.lifecycle.LifecycleImpl
 import com.keyflare.elastik.core.routing.router.BaseRouter.DestinationBinding.SingleDestinationBinding
 import com.keyflare.elastik.core.routing.router.BaseRouter.DestinationBinding.StackDestinationBinding
 
@@ -74,11 +76,12 @@ sealed class BaseRouter(context: ElastikContext) {
         syncState()
     }
 
+    // TODO think in case of synchronicity
     fun onBack() {
-        routingContext.globalBackDispatcher.dispatch()
+        routingContext.backDispatcher.dispatch()
     }
 
-    tailrec fun root(): BaseRouter = when (parent) {
+    fun root(): BaseRouter = when (parent) {
         null -> this
         else -> parent.root()
     }
@@ -125,8 +128,8 @@ sealed class BaseRouter(context: ElastikContext) {
                     is Single -> {
                         singleChildren[entry.entryId]
                             .requireNotNull { Errors.entryNotFound(entry.entryId) }
-                            .backDispatcher
-                            .dispatchBackEvent()
+                            .backHandler
+                            .onHandleBack()
                     }
 
                     is Stack -> {
@@ -157,7 +160,7 @@ sealed class BaseRouter(context: ElastikContext) {
 
     internal fun addSingleDestinationBinding(
         destinationId: String,
-        componentFactory: ((BackHandler) -> Any),
+        componentFactory: ((ComponentContext) -> Any),
         renderFactory: ((Any) -> SingleRender),
     ) {
         require(addedDestinations.add(destinationId)) {
@@ -256,12 +259,24 @@ sealed class BaseRouter(context: ElastikContext) {
                     isSingle = true,
                 )
             }
-        val backController = BackControllerImpl()
-        val component = destinationBinding.componentFactory(backController)
+
+        val backHandler = BackHandlerImpl()
+
+        val lifecycle = LifecycleImpl()
+        routingContext.lifecycleEventsDispatcher.addLifecycle(newSingle.entryId, lifecycle)
+
+        val componentContext = ComponentContext(
+            router = this,
+            destinationId = newSingle.destinationId,
+            entryId = newSingle.entryId,
+            backHandler = backHandler,
+            lifecycle = lifecycle,
+        )
+        val component = destinationBinding.componentFactory(componentContext)
 
         singleChildren[newSingle.entryId] = Child.SingleChild(
             entry = newSingle,
-            backDispatcher = backController,
+            backHandler = backHandler,
             component = component,
         )
 
@@ -301,6 +316,7 @@ sealed class BaseRouter(context: ElastikContext) {
     }
 
     private fun onRemoveSingleEntry(entryId: Int) {
+        routingContext.lifecycleEventsDispatcher.removeLifecycle(entryId)
         singleChildren.remove(entryId)
         routingContext.onSingleDestroyed(entryId)
     }
@@ -330,7 +346,7 @@ sealed class BaseRouter(context: ElastikContext) {
         if (parent != null) return
 
         routingContext
-            .globalBackDispatcher
+            .backDispatcher
             .subscribe(::handleBack)
     }
 
@@ -339,7 +355,7 @@ sealed class BaseRouter(context: ElastikContext) {
 
         class SingleChild(
             override val entry: Single,
-            val backDispatcher: BackDispatcher,
+            val backHandler: BackHandlerImpl,
             val component: Any,
         ) : Child
 
@@ -354,7 +370,7 @@ sealed class BaseRouter(context: ElastikContext) {
 
         class SingleDestinationBinding(
             override val destinationId: String,
-            val componentFactory: (BackHandler) -> Any,
+            val componentFactory: (ComponentContext) -> Any,
             val renderFactory: (Any) -> SingleRender,
         ) : DestinationBinding
 

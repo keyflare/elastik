@@ -5,17 +5,31 @@ import com.keyflare.elastik.core.render.NoRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.DynamicRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
+import com.keyflare.elastik.core.util.component.TestScreenComponent
+import com.keyflare.elastik.core.util.component.TestScreenComponentsReporter
 
 fun ElastikContext.createStaticRoot(
+    testScreenComponentsReporter: TestScreenComponentsReporter = TestScreenComponentsReporter(),
     body: RouterTreeBuilderScope.() -> Unit,
 ): BaseRouter {
-    return RouterTreeBuilder(this, body, isStatic = true).build()
+    return RouterTreeBuilder(
+        context = this,
+        body = body,
+        isStatic = true,
+        testScreenComponentsReporter = testScreenComponentsReporter,
+    ).build()
 }
 
 fun ElastikContext.createDynamicRoot(
+    testScreenComponentsReporter: TestScreenComponentsReporter = TestScreenComponentsReporter(),
     body: RouterTreeBuilderScope.() -> Unit,
 ): BaseRouter {
-    return RouterTreeBuilder(this, body, isStatic = false).build()
+    return RouterTreeBuilder(
+        context = this,
+        body = body,
+        isStatic = false,
+        testScreenComponentsReporter = testScreenComponentsReporter,
+    ).build()
 }
 
 interface RouterTreeBuilderScope {
@@ -31,8 +45,6 @@ open class TestStaticRouter(
 open class TestDynamicRouter(
     context: ElastikContext,
 ) : DynamicRouter(context)
-
-data class TestScreenComponent(val destinationId: String)
 
 private class RouterTreeBuilderScopeImpl(
     private val idGenerator: DestinationIdGenerator = DestinationIdGenerator(),
@@ -95,6 +107,7 @@ private class RouterTreeBuilder(
     private val context: ElastikContext,
     private val body: RouterTreeBuilderScopeImpl.() -> Unit,
     private val isStatic: Boolean,
+    private val testScreenComponentsReporter: TestScreenComponentsReporter,
 ) {
     fun build(): BaseRouter {
         val entriesToBuild = RouterTreeBuilderScopeImpl().run {
@@ -106,13 +119,13 @@ private class RouterTreeBuilder(
         val root = if (isStatic) {
             object : TestStaticRouter(context) {
                 init {
-                    entriesToBuild.forEach { destination(it) }
+                    entriesToBuild.forEach { destination(it, testScreenComponentsReporter) }
                 }
             }
         } else {
             object : TestDynamicRouter(context) {
                 init {
-                    entriesToBuild.forEach { destination(it) }
+                    entriesToBuild.forEach { destination(it, testScreenComponentsReporter) }
                 }
             }
         }
@@ -120,35 +133,41 @@ private class RouterTreeBuilder(
         return root
     }
 
-    private fun BaseRouter.destination(entry: DestinationBuilderData) {
+    private fun BaseRouter.destination(
+        entry: DestinationBuilderData,
+        testScreenComponentsReporter: TestScreenComponentsReporter,
+    ) {
         when {
             entry is SingleBuilderData ->
-                testSingle(entry.destinationId)
+                testSingle(entry.destinationId, testScreenComponentsReporter)
 
             entry is StackBuilderData && entry.isStatic ->
                 testStaticStack(entry.destinationId) {
-                    entry.children.forEach { destination(it) }
+                    entry.children.forEach { destination(it, testScreenComponentsReporter) }
                 }
 
             entry is StackBuilderData && !entry.isStatic ->
                 testDynamicStack(entry.destinationId) {
-                    entry.children.forEach { destination(it) }
+                    entry.children.forEach { destination(it, testScreenComponentsReporter) }
                 }
         }
     }
 
-    private fun BaseRouter.testSingle(destinationId: String) {
+    private fun BaseRouter.testSingle(
+        destinationId: String,
+        testReporter: TestScreenComponentsReporter,
+    ) {
         when (this) {
             is StaticRouter -> singleNoArgs(
                 destinationId = destinationId,
                 renderFactory = { NoRender },
-                componentFactory = { TestScreenComponent(destinationId) }
+                componentFactory = { TestScreenComponent(it, testReporter) }
             )
 
             is DynamicRouter -> singleNoArgs(
                 destinationId = destinationId,
                 renderFactory = { NoRender },
-                componentFactory = { TestScreenComponent(destinationId) }
+                componentFactory = { TestScreenComponent(it, testReporter) }
             )
         }
     }
