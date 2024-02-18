@@ -1,7 +1,7 @@
 package com.keyflare.elastik.core.setup.platform
 
 import com.keyflare.elastik.core.context.LifecycleEventsSource
-import com.keyflare.elastik.core.routing.lifecycle.LifecycleEvent
+import com.keyflare.elastik.core.routing.context.LifecycleEvent
 
 class TestLifecycleEventsSource : LifecycleEventsSource {
     private var callback: ((LifecycleEvent) -> Unit)? = null

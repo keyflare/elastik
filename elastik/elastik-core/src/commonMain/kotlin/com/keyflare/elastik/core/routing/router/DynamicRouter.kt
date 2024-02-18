@@ -8,23 +8,15 @@ import com.keyflare.elastik.core.state.StackTransformation
 import com.keyflare.elastik.core.state.EmptyArguments
 import com.keyflare.elastik.core.state.Single
 import com.keyflare.elastik.core.context.ElastikContext
+import com.keyflare.elastik.core.routing.navigation.Navigator
+import com.keyflare.elastik.core.routing.tree.Destination
 import com.keyflare.elastik.core.routing.tree.DynamicRouterTreeBuilder
 import com.keyflare.elastik.core.routing.tree.DynamicRouterTreeBuilderDelegate
-
-interface TransactionManager {
-
-    fun navigateTo(destination: Destination<EmptyArguments>)
-
-    fun <Args : Arguments> navigateTo(
-        destination: Destination<Args>,
-        args: Args,
-    )
-}
 
 abstract class DynamicRouter(context: ElastikContext) :
     BaseRouter(context),
     DynamicRouterTreeBuilder by DynamicRouterTreeBuilderDelegate(),
-    TransactionManager {
+    Navigator {
 
     override fun navigateTo(destination: Destination<EmptyArguments>) {
         navigateTo(destination, EmptyArguments)

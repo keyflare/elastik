@@ -12,8 +12,7 @@ import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
 import com.keyflare.elastik.core.routing.router.BaseRouter
-import com.keyflare.elastik.core.routing.router.ComponentContext
-import com.keyflare.elastik.core.routing.router.Destination
+import com.keyflare.elastik.core.routing.component.ComponentContext
 import com.keyflare.elastik.core.util.requireNotNull
 
 abstract class StaticStackDestination<Args : Arguments, Router : BaseRouter>(

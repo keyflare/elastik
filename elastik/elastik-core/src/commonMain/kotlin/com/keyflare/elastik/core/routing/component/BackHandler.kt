@@ -1,4 +1,4 @@
-package com.keyflare.elastik.core.routing.back
+package com.keyflare.elastik.core.routing.component
 
 interface BackHandler {
     fun handleBack(callback: () -> Boolean)

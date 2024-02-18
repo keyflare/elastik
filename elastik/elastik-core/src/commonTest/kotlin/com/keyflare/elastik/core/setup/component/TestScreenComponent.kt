@@ -1,7 +1,7 @@
 package com.keyflare.elastik.core.setup.component
 
-import com.keyflare.elastik.core.routing.lifecycle.LifecycleEvent
-import com.keyflare.elastik.core.routing.router.ComponentContext
+import com.keyflare.elastik.core.routing.context.LifecycleEvent
+import com.keyflare.elastik.core.routing.component.ComponentContext
 import com.keyflare.elastik.core.setup.component.TestScreenComponentEvent.BackHasBeenHandled
 import com.keyflare.elastik.core.setup.component.TestScreenComponentEvent.BackHasNotBeenHandled
 import com.keyflare.elastik.core.setup.component.TestScreenComponentEvent.LifecycleEventReceived

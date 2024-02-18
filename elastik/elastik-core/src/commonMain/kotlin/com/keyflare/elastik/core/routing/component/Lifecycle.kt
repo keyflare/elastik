@@ -1,4 +1,6 @@
-package com.keyflare.elastik.core.routing.lifecycle
+package com.keyflare.elastik.core.routing.component
+
+import com.keyflare.elastik.core.routing.context.LifecycleEvent
 
 interface Lifecycle {
 

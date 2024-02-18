@@ -1,7 +1,6 @@
-package com.keyflare.elastik.core.routing.router
+package com.keyflare.elastik.core.routing.component
 
-import com.keyflare.elastik.core.routing.back.BackHandler
-import com.keyflare.elastik.core.routing.lifecycle.Lifecycle
+import com.keyflare.elastik.core.routing.router.BaseRouter
 
 data class ComponentContext(
     val router: BaseRouter,

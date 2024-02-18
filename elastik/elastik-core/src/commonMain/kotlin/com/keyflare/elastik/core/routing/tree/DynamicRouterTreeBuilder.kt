@@ -4,12 +4,11 @@ import com.keyflare.elastik.core.state.Arguments
 import com.keyflare.elastik.core.state.EmptyArguments
 import com.keyflare.elastik.core.state.find
 import com.keyflare.elastik.core.routing.router.BaseRouter
-import com.keyflare.elastik.core.routing.router.Destination
 import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
-import com.keyflare.elastik.core.routing.router.ComponentContext
+import com.keyflare.elastik.core.routing.component.ComponentContext
 
 abstract class DynamicStackDestination<Args : Arguments, Router : BaseRouter>(
     val destination: Destination<Args>,

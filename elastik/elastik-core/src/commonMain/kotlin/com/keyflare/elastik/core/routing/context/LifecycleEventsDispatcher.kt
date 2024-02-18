@@ -1,4 +1,6 @@
-package com.keyflare.elastik.core.routing.lifecycle
+package com.keyflare.elastik.core.routing.context
+
+import com.keyflare.elastik.core.routing.component.LifecycleImpl
 
 enum class LifecycleEvent {
     CREATED,

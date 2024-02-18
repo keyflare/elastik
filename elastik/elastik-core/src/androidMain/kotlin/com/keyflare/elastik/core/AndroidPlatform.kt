@@ -8,7 +8,7 @@ import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.context.ElastikPlatform
 import com.keyflare.elastik.core.context.BackEventsSource
 import com.keyflare.elastik.core.context.LifecycleEventsSource
-import com.keyflare.elastik.core.routing.lifecycle.LifecycleEvent
+import com.keyflare.elastik.core.routing.context.LifecycleEvent
 
 fun <T> T.attachElastikContext(context: ElastikContext) where
         T : OnBackPressedDispatcherOwner,

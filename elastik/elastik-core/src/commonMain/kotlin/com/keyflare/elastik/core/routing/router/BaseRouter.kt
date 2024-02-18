@@ -10,12 +10,13 @@ import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.Errors
 import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
-import com.keyflare.elastik.core.routing.RoutingContext
-import com.keyflare.elastik.core.routing.back.BackHandlerImpl
+import com.keyflare.elastik.core.routing.context.RoutingContext
+import com.keyflare.elastik.core.routing.component.BackHandlerImpl
+import com.keyflare.elastik.core.routing.component.ComponentContext
 import com.keyflare.elastik.core.util.castOrError
 import com.keyflare.elastik.core.util.requireNotNull
 import com.keyflare.elastik.core.routing.diff.differenceOf
-import com.keyflare.elastik.core.routing.lifecycle.LifecycleImpl
+import com.keyflare.elastik.core.routing.component.LifecycleImpl
 import com.keyflare.elastik.core.routing.router.BaseRouter.DestinationBinding.SingleDestinationBinding
 import com.keyflare.elastik.core.routing.router.BaseRouter.DestinationBinding.StackDestinationBinding
 

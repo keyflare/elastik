@@ -4,8 +4,8 @@ import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.RenderContext
 import com.keyflare.elastik.core.render.RenderContextImpl
 import com.keyflare.elastik.core.render.SingleRender
-import com.keyflare.elastik.core.routing.RoutingContext
-import com.keyflare.elastik.core.routing.RoutingContextImpl
+import com.keyflare.elastik.core.routing.context.RoutingContext
+import com.keyflare.elastik.core.routing.context.RoutingContextImpl
 import com.keyflare.elastik.core.state.ElastikStateHolder
 
 class ElastikContext private constructor(

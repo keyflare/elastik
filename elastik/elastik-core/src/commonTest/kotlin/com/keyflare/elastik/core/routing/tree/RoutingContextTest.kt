@@ -2,7 +2,7 @@ package com.keyflare.elastik.core.routing.tree
 
 import com.keyflare.elastik.core.context.ElastikContext
 import com.keyflare.elastik.core.render.NoRender
-import com.keyflare.elastik.core.routing.NewRouterData
+import com.keyflare.elastik.core.routing.context.NewRouterData
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
 import com.keyflare.elastik.core.state.EmptyArguments

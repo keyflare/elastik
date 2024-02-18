@@ -1,5 +1,6 @@
 package com.keyflare.elastik.core.routing.lifecycle
 
+import com.keyflare.elastik.core.routing.context.LifecycleEvent
 import com.keyflare.elastik.core.setup.navigation.applyNavigation
 import com.keyflare.elastik.core.setup.visualization.assertAsString
 import com.keyflare.elastik.core.setup.component.TestScreenComponentEvent.LifecycleEventReceived

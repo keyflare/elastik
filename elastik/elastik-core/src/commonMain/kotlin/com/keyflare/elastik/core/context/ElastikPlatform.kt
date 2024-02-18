@@ -1,6 +1,6 @@
 package com.keyflare.elastik.core.context
 
-import com.keyflare.elastik.core.routing.lifecycle.LifecycleEvent
+import com.keyflare.elastik.core.routing.context.LifecycleEvent
 
 internal class ElastikPlatform(
     val lifecycleEventsSource: LifecycleEventsSource,

@@ -1,6 +1,6 @@
 package com.keyflare.elastik.core.setup.component
 
-import com.keyflare.elastik.core.routing.lifecycle.LifecycleEvent
+import com.keyflare.elastik.core.routing.context.LifecycleEvent
 
 sealed interface TestScreenComponentEvent {
     val destinationId: String
