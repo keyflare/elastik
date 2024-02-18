@@ -11,4 +11,14 @@ sealed interface TestScreenComponentEvent {
         override val destinationId: String,
         val lifecycleEvent: LifecycleEvent,
     ) : TestScreenComponentEvent
+
+    data class BackHasBeenHandled(
+        override val entryId: Int,
+        override val destinationId: String,
+    ) : TestScreenComponentEvent
+
+    data class BackHasNotBeenHandled(
+        override val entryId: Int,
+        override val destinationId: String,
+    ) : TestScreenComponentEvent
 }

@@ -1,6 +1,7 @@
 package com.keyflare.elastik.core.routing.backhandle
 
 import app.cash.turbine.test
+import com.keyflare.elastik.core.setup.component.setupComponents
 import com.keyflare.elastik.core.setup.navigation.applyNavigation
 import com.keyflare.elastik.core.setup.visualization.assertAsString
 import com.keyflare.elastik.core.setup.platform.TestPlatform
@@ -297,6 +298,62 @@ class BackHandlingTest {
             backEventsSource.fireEvent()
             assertEquals(expected = false, actual = awaitItem())
             root.assertAsString("root*(A*(B))")
+        }
+    }
+
+    @Test // root(A-B(*C(D(E)))-F)
+    fun `back handling by component test`() = runBlocking {
+        val root = testPlatform
+            .createDynamicRoot {
+                single() // A
+                dynamic { // B
+                    static { // C
+                        dynamic {  // D
+                            single() // E
+                        }
+                    }
+                }
+                single() // F
+            }
+            .applyNavigation {
+                router("root") navigate "A"
+                router("root") navigate "B"
+                router("root") navigate "F"
+                router("B") navigate "C"
+                router("D") navigate "E"
+            }
+            .setupComponents {
+                component("A") { enableHandlingBackEvents(1) }
+                component("E") { enableHandlingBackEvents(1) }
+                component("F") { enableHandlingBackEvents(1) }
+            }
+
+        backEventsSource.handleResultFlow().test(timeout = 1.seconds) {
+            root.assertAsString("root(A-B(C*(D(E)))-F)")
+
+            backEventsSource.fireEvent()
+            assertEquals(expected = true, actual = awaitItem())
+            root.assertAsString("root(A-B(C*(D(E)))-F)")
+
+            backEventsSource.fireEvent()
+            assertEquals(expected = true, actual = awaitItem())
+            root.assertAsString("root(A-B(C*(D(E))))")
+
+            backEventsSource.fireEvent()
+            assertEquals(expected = true, actual = awaitItem())
+            root.assertAsString("root(A-B(C*(D(E))))")
+
+            backEventsSource.fireEvent()
+            assertEquals(expected = true, actual = awaitItem())
+            root.assertAsString("root(A)")
+
+            backEventsSource.fireEvent()
+            assertEquals(expected = true, actual = awaitItem())
+            root.assertAsString("root(A)")
+
+            backEventsSource.fireEvent()
+            assertEquals(expected = false, actual = awaitItem())
+            root.assertAsString("root(A)")
         }
     }
 }
