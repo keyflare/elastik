@@ -7,6 +7,8 @@ import com.keyflare.elastik.core.routing.router.DynamicRouter
 import com.keyflare.elastik.core.routing.router.StaticRouter
 import com.keyflare.elastik.core.setup.component.TestScreenComponent
 import com.keyflare.elastik.core.setup.component.TestScreenComponentsReporter
+import com.keyflare.elastik.core.setup.router.TestDynamicRouter
+import com.keyflare.elastik.core.setup.router.TestStaticRouter
 
 fun ElastikContext.createStaticRoot(
     testScreenComponentsReporter: TestScreenComponentsReporter = TestScreenComponentsReporter(),
@@ -37,14 +39,6 @@ interface RouterTreeBuilderScope {
     fun static(body: RouterTreeBuilderScope.() -> Unit)
     fun dynamic(body: RouterTreeBuilderScope.() -> Unit)
 }
-
-open class TestStaticRouter(
-    context: ElastikContext,
-) : StaticRouter(context)
-
-open class TestDynamicRouter(
-    context: ElastikContext,
-) : DynamicRouter(context)
 
 private class RouterTreeBuilderScopeImpl(
     private val idGenerator: DestinationIdGenerator = DestinationIdGenerator(),

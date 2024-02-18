@@ -3,14 +3,14 @@ package com.keyflare.elastik.core.setup.component
 import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.util.cast
 
-fun BaseRouter.setupComponents(body: SetupComponentsScope.() -> Unit): BaseRouter {
+internal fun BaseRouter.setupComponents(body: SetupComponentsScope.() -> Unit): BaseRouter {
     SetupComponentsScopeImpl(root = this).apply {
         body()
     }
     return this
 }
 
-interface SetupComponentsScope {
+internal interface SetupComponentsScope {
     fun component(destinationId: String, body: TestScreenComponent.() -> Unit)
 }
 

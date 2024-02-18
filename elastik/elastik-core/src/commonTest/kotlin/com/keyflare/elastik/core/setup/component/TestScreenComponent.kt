@@ -7,7 +7,7 @@ import com.keyflare.elastik.core.setup.component.TestScreenComponentEvent.BackHa
 import com.keyflare.elastik.core.setup.component.TestScreenComponentEvent.LifecycleEventReceived
 
 @Suppress("MemberVisibilityCanBePrivate")
-class TestScreenComponent(
+internal class TestScreenComponent(
     val context: ComponentContext,
     val testReporter: TestScreenComponentsReporter,
 ) {
