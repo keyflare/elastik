@@ -15,17 +15,15 @@ import com.keyflare.elastik.core.routing.router.BaseRouter
 import com.keyflare.elastik.core.routing.component.ComponentContext
 import com.keyflare.elastik.core.util.requireNotNull
 
-abstract class StaticStackDestination<Args : Arguments, Router : BaseRouter>(
+class StaticStackDestination<Args : Arguments, Router : BaseRouter> internal constructor(
     val destination: Destination<Args>,
-) {
-    abstract val router: Router
-}
+    val router: Router,
+)
 
-abstract class StaticSingleDestination<Args : Arguments, Component : Any>(
+class StaticSingleDestination<Args : Arguments, Component : Any> internal constructor(
     val destination: Destination<Args>,
-) {
-    abstract val component: Component
-}
+    val component: Component,
+)
 
 interface StaticRouterTreeBuilder {
 
@@ -90,21 +88,20 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
         )
         state.pushTransaction(StackTransaction(listOf(addEntryTransformation)))
 
-        return object : StaticSingleDestination<Args, Component>(
-            destination = Destination(destinationId = destinationId, single = true),
-        ) {
-            override val component: Component by lazy {
+        val component = state.state.value
+            .find { it.destinationId == destinationId }
+            .requireNotNull()
+            .let {
+                val component = findComponentOrNull(it.entryId)
+                    ?: error(Errors.componentNotFound(it.destinationId))
                 @Suppress("UNCHECKED_CAST")
-                state.state.value
-                    .find { it.destinationId == destinationId }
-                    .requireNotNull()
-                    .let {
-                        val component = findComponentOrNull(it.entryId)
-                            ?: error(Errors.componentNotFound(it.destinationId))
-                        component as Component
-                    }
+                component as Component
             }
-        }
+
+        return StaticSingleDestination(
+            destination = Destination(destinationId = destinationId, single = true),
+            component = component,
+        )
     }
 
     override fun <Router : BaseRouter> BaseRouter.stackNoArgs(
@@ -139,24 +136,21 @@ internal class StaticRouterTreeBuilderDelegate : StaticRouterTreeBuilder {
                 entries + newEntry
             },
         )
-
         state.pushTransaction(StackTransaction(listOf(addEntryTransformation)))
 
-        // TODO MVP Solution!!! Refactor this approach
-        return object : StaticStackDestination<Args, Router>(
-            destination = Destination(destinationId = destinationId, single = false),
-        ) {
-            override val router: Router by lazy {
+        val router = state.state.value
+            .find { it.destinationId == destinationId }
+            .requireNotNull()
+            .let {
+                val router = findRouterOrNull(it.entryId)
+                    ?: error(Errors.routerNotFound(it.destinationId))
                 @Suppress("UNCHECKED_CAST")
-                state.state.value
-                    .find { it.destinationId == destinationId }
-                    .requireNotNull()
-                    .let {
-                        val router = findRouterOrNull(it.entryId)
-                            ?: error(Errors.routerNotFound(it.destinationId))
-                        router as Router
-                    }
+                router as Router
             }
-        }
+
+        return StaticStackDestination(
+            destination = Destination(destinationId = destinationId, single = false),
+            router = router,
+        )
     }
 }

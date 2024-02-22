@@ -10,18 +10,44 @@ import com.keyflare.elastik.core.render.StackRender
 import com.keyflare.elastik.core.render.SingleRender
 import com.keyflare.elastik.core.routing.component.ComponentContext
 
-abstract class DynamicStackDestination<Args : Arguments, Router : BaseRouter>(
+class DynamicStackDestination<Args : Arguments, Router : BaseRouter> internal constructor(
     val destination: Destination<Args>,
+    private val parent: BaseRouter,
 ) {
-    abstract fun peekRouter(): Router
-    abstract fun peekRouterOrNull(): Router?
+    fun peekRouter(): Router {
+        return runCatching { requireNotNull(peekRouterOrNull()) }
+            .getOrElse { error(Errors.routerNotFound(destination.destinationId)) }
+    }
+
+    fun peekRouterOrNull(): Router? {
+        val entryId = parent.state.state.value
+            .find { it.destinationId == destination.destinationId }
+            ?.entryId
+            ?: return null
+
+        @Suppress("UNCHECKED_CAST")
+        return parent.findRouterOrNull(entryId) as? Router
+    }
 }
 
-abstract class DynamicSingleDestination<Args : Arguments, Component : Any>(
-    val destination: Destination<Args>
+class DynamicSingleDestination<Args : Arguments, Component : Any> internal constructor(
+    val destination: Destination<Args>,
+    private val parent: BaseRouter,
 ) {
-    abstract fun peekComponent(): Component
-    abstract fun peekComponentOrNull(): Component?
+    fun peekComponent(): Component {
+        return runCatching { requireNotNull(peekComponentOrNull()) }
+            .getOrElse { error(Errors.componentNotFound(destination.destinationId)) }
+    }
+
+    fun peekComponentOrNull(): Component? {
+        val entryId = parent.state.state.value
+            .find { it.destinationId == destination.destinationId }
+            ?.entryId
+            ?: return null
+
+        @Suppress("UNCHECKED_CAST")
+        return parent.findComponentOrNull(entryId) as? Component
+    }
 }
 
 interface DynamicRouterTreeBuilder {
@@ -71,25 +97,10 @@ internal class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
         val renderFactoryImpl = { component: Any -> renderFactory(component as Component) }
         addSingleDestinationBinding(destinationId, componentFactory, renderFactoryImpl)
 
-        // TODO MVP Solution!!! Refactor this approach
-        return object : DynamicSingleDestination<Args, Component>(
-            destination = Destination(destinationId = destinationId, single = true)
-        ) {
-            override fun peekComponent(): Component {
-                return runCatching { requireNotNull(peekComponentOrNull()) }
-                    .getOrElse { error(Errors.componentNotFound(destinationId)) }
-            }
-
-            override fun peekComponentOrNull(): Component? {
-                val entryId = state.state.value
-                    .find { it.destinationId == destinationId }
-                    ?.entryId
-                    ?: return null
-
-                @Suppress("UNCHECKED_CAST")
-                return findComponentOrNull(entryId) as? Component
-            }
-        }
+        return DynamicSingleDestination(
+            destination = Destination(destinationId = destinationId, single = true),
+            parent = this,
+        )
     }
 
     override fun <Router : BaseRouter> BaseRouter.stackNoArgs(
@@ -110,24 +121,9 @@ internal class DynamicRouterTreeBuilderDelegate : DynamicRouterTreeBuilder {
         val renderFactoryImpl = { router: BaseRouter -> renderFactory(router as Router) }
         addStackDestinationBinding(destinationId, routerFactory, renderFactoryImpl)
 
-        // TODO MVP Solution!!! Refactor this approach
-        return object : DynamicStackDestination<Args, Router>(
+        return DynamicStackDestination(
             destination = Destination(destinationId = destinationId, single = false),
-        ) {
-            override fun peekRouter(): Router {
-                return runCatching { requireNotNull(peekRouterOrNull()) }
-                    .getOrElse { error(Errors.routerNotFound(destinationId)) }
-            }
-
-            override fun peekRouterOrNull(): Router? {
-                val entryId = state.state.value
-                    .find { it.destinationId == destinationId }
-                    ?.entryId
-                    ?: return null
-
-                @Suppress("UNCHECKED_CAST")
-                return findRouterOrNull(entryId) as? Router
-            }
-        }
+            parent = this,
+        )
     }
 }
