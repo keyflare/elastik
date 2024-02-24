@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.jvm.JvmInline
 
+// TODO Simplify this. It turns out that it's not needed to be such a complicated structure:
+//  Transaction <- multiple operations. It's enough to have a single operation per transaction.
 @JvmInline
 internal value class StackTransaction(
     val transformations: List<StackTransformation>
@@ -16,8 +18,6 @@ internal class StackTransformation(
     val transformation: (List<Entry>) -> List<Entry>,
 )
 
-// TODO MVP solution!
-//  - maybe mark constructor as internal
 internal class ElastikStateHolder(initial: Stack = initialState) {
     private val _state = MutableStateFlow(initial)
     val state: StateFlow<Stack> = _state.asStateFlow()
@@ -54,7 +54,6 @@ internal class ElastikStateHolder(initial: Stack = initialState) {
         //  that some user's destination will conflict with this id.
         private const val ROOT_DESTINATION_ID = "root"
 
-        @PublishedApi
         internal val initialState = Stack(
             entryId = ROOT_ENTRY_ID,
             args = EmptyArguments,
